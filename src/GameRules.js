@@ -9,12 +9,11 @@ var config = {
             // default: 'arcade',
             arcade: {
                 // gravity: { y: 300 },
+                maxVelocity: 600,
                 debug: true
             },
             impact: {
-                debug: true
-            },
-            p2: {
+                maxVelocity: 500,
                 debug: true
             }
         },
@@ -31,6 +30,13 @@ var gameOver;
 
 var game = new Phaser.Game(config);
 
+
+
+
+
+
+
+
 function preload() {
 
     // this.load.image('background','img/debug-grid-1920x1920.png');
@@ -39,26 +45,31 @@ function preload() {
     this.load.image('player_shutdown','img/nave_shutdown2.png');
     this.load.image('player_turbo','img/nave_turbo2.png');
     this.load.image('meteor','img/meteor.png');
+    // this.load.tilemapWeltmeister('map','img/cybernoid.json');
 
 }
 
+
+
+
+
+
+
+
 function create() {
     stageBG = this.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
-    // stageBG = this.add.image(0, 0, 'background').setOrigin(0);
     this.physics.world.setBounds(1, 1, 1920, 1920)
 
+    // var map = this.make.tilemap({ key: 'map' });
     
-    // console.log(this)
-    // this.physics.startSystem(Phaser.Physics.P2JS);
-
-    // obstacles = this.physics.add.staticGroup();
     obstacles = this.physics.add.group();
     // obstacles.create(320, 320, 'meteor').setScale(0.5).refreshBody();
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 7; i++) {
         var x = Phaser.Math.Between(0,1920);
         var y = Phaser.Math.Between(0,1920);
         // var meteor = obstacles.create(x, y, 'meteor').setScale(0.3).refreshBody();
         var meteor = obstacles.create(x, y, 'meteor');
+        // this.make.tilemap({ key: 'map' });
         meteor.setBounce(1);
         meteor.setCollideWorldBounds(true);
         meteor.scaleX = 0.3
@@ -93,6 +104,14 @@ function create() {
 
 
 }
+
+
+
+
+
+
+
+
 
 var regular_speed = 200
 var max_speed = 500
@@ -147,6 +166,14 @@ function update() {
     }
 
 }
+
+
+
+
+
+
+
+
 
 function acelerationFromAngle(player, aceleration, permited=regular_speed){
     var newVelX;

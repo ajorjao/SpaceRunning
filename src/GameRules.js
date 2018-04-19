@@ -86,7 +86,6 @@ function create() {
         {
             this.setPosition(player.x, player.y);
 
-            console.log(flag);
             if (flag == 1)
             {
                 //  Facing left
@@ -132,8 +131,6 @@ function create() {
     });
 
     // var map = this.make.tilemap({ key: 'map' });
-    
-    console.log(this)
 
     // mapa
     walls = this.physics.add.staticGroup();
@@ -171,7 +168,7 @@ function create() {
     this.physics.add.collider(walls, player);
 
     this.physics.add.collider(obstacles, obstacles);
-    this.physics.add.collider(bullets, obstacles); // agregar aqui funcion para destruir
+    this.physics.add.collider(bullets, obstacles, destroyMeteor); // agregar aqui funcion para destruir
     this.physics.add.collider(player, obstacles, hitMeteor, null, this);
 
 
@@ -201,7 +198,7 @@ var regular_speed = 200
 var max_speed = 500
 var slow_speed = 100
 
-function update() {
+function update(time, delta) {
 
 
     if (gameOver) {
@@ -231,16 +228,13 @@ function update() {
     }
 
     if(cursors.up.isDown){
-        console.log("up!");
-        flag = 3;
+        flag = 4;
     }
     else if(cursors.down.isDown){
-        console.log("down!");
-        flag = 4;
+        flag = 3;
     }
 
     if (cursors.left.isDown) {
-        console.log("left!");
         player.body.angularVelocity = -200;
         flag = 1;
         if (cursors.up.isUp && cursors.down.isUp) {
@@ -259,6 +253,7 @@ function update() {
     else {
         player.body.angularVelocity = 0;
     }
+
     if (cursors.space.isDown && time > lastFired)
     {
         var bullet = bullets.get();
@@ -338,6 +333,10 @@ function hitMeteor (player, obstacle)
 
     // gameOver = true;
 
+}
+
+function destroyMeteor (bullets, obstacles){
+    obstacles.destroy();
 }
 
 function createBulletEmitter ()

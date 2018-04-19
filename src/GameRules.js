@@ -28,6 +28,10 @@ var walls;
 var stageBG;
 var cursors;
 var gameOver;
+var bullets= null;
+var flares = null;
+var lastFired = 0;
+var flag = true;
 
 var game = new Phaser.Game(config);
 
@@ -40,7 +44,6 @@ var game = new Phaser.Game(config);
 
 function preload() {
 
-    // this.load.image('background','img/debug-grid-1920x1920.png');
     this.load.image('background','img/space2.png');
     this.load.image('player','img/nave.png');
     this.load.image('player_shutdown','img/nave_shutdown2.png');
@@ -48,7 +51,7 @@ function preload() {
     this.load.image('meteor','img/meteor.png');
     this.load.image('vwall','img/Vlaserwall.png')
     this.load.image('hwall','img/Hlaserwall.png')
-    // this.load.tilemapWeltmeister('map','img/cybernoid.json');
+    this.load.image('bullet', 'img/bullets.png');
 
 }
 
@@ -61,7 +64,58 @@ function preload() {
 
 function create() {
     stageBG = this.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
-    this.physics.world.setBounds(1, 1, 1920, 1920)
+    this.physics.world.setBounds(1, 1, 1920, 1920);
+
+    var Bullet = new Phaser.Class({
+
+
+        Extends: Phaser.GameObjects.Image,
+
+        initialize:
+
+
+        function Bullet (scene)
+        {
+            Phaser.GameObjects.Image.call(this, scene, 0, 0, 'bullet');
+
+            this.speed = 0;
+            this.born = 0;
+        },
+
+        fire: function (player)
+        {
+            this.setPosition(player.x, player.y);
+
+            if (flag)
+            {
+                console.log("bbb");
+                //  Facing left
+                this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.x, 1);
+            }
+            else
+            {
+                console.log("aaaa");
+                //  Facing right
+                this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.x, 1);
+            }
+
+            this.born = 0;
+        },
+
+        update: function (time, delta)
+        {
+            this.x += this.speed * delta;
+
+            this.born += delta;
+
+            if (this.born > 500)
+            {
+                this.setActive(false);
+                this.setVisible(false);
+            }
+        }
+
+    });
 
     // var map = this.make.tilemap({ key: 'map' });
     
@@ -93,6 +147,8 @@ function create() {
         meteor.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(-100, 100));
     }
 
+    bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
+
     player = this.physics.add.sprite(600, 500, 'player');
     player.setBounce(1.2);
     player.setCollideWorldBounds(true);
@@ -104,6 +160,7 @@ function create() {
     this.physics.add.collider(walls, player);
 
     this.physics.add.collider(obstacles, obstacles);
+    this.physics.add.collider(bullets, obstacles); // agregar aqui funcion para destruir
     this.physics.add.collider(player, obstacles, hitMeteor, null, this);
 
 
@@ -165,6 +222,7 @@ function update() {
 
     if (cursors.left.isDown) {
         player.body.angularVelocity = -200;
+        flag = true;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
@@ -172,6 +230,7 @@ function update() {
     }
     else if (cursors.right.isDown) {
         player.body.angularVelocity = 200;
+        flag = false;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
@@ -179,6 +238,19 @@ function update() {
     }
     else {
         player.body.angularVelocity = 0;
+    }
+    if (cursors.space.isDown && time > lastFired)
+    {
+        var bullet = bullets.get();
+        bullet.setActive(true);
+        bullet.setVisible(true);
+
+        if (bullet)
+        {
+            bullet.fire(player);
+
+            lastFired = time + 100;
+        }
     }
 
 }
@@ -246,4 +318,17 @@ function hitMeteor (player, obstacle)
 
     // gameOver = true;
 
+}
+
+function createBulletEmitter ()
+{
+    this.flares = this.add.particles('flares').createEmitter({
+        x: 1600,
+        y: 200,
+        angle: { min: 170, max: 190 },
+        scale: { start: 0.4, end: 0.2 },
+        blendMode: 'ADD',
+        lifespan: 500,
+        on: false
+    });
 }

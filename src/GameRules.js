@@ -31,7 +31,7 @@ var gameOver;
 var bullets= null;
 var flares = null;
 var lastFired = 0;
-var flag = true;
+var flag = 1;
 
 var game = new Phaser.Game(config);
 
@@ -86,17 +86,24 @@ function create() {
         {
             this.setPosition(player.x, player.y);
 
-            if (flag)
+            if (flag == 1)
             {
-                console.log("bbb");
                 //  Facing left
                 this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.x, 1);
             }
-            else
+            else if(flag == 2)
             {
-                console.log("aaaa");
                 //  Facing right
                 this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.x, 1);
+            }
+            else if(flag == 3){
+
+                //facing up
+                this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.y, 1);
+            }
+            else{
+                //facing down
+                this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.y, 1);
             }
 
             this.born = 0;
@@ -104,7 +111,13 @@ function create() {
 
         update: function (time, delta)
         {
-            this.x += this.speed * delta;
+            if(flag == 1 || flag == 2){
+                this.x += this.speed * delta;
+            }
+            else{
+                this.y += this.speed * delta;
+            }
+            
 
             this.born += delta;
 
@@ -117,11 +130,7 @@ function create() {
 
     });
 
-    
     // console.log(this)
-
-
-
 
     obstacles = this.physics.add.group();
     // obstacles.create(320, 320, 'meteor').setScale(0.5).refreshBody();
@@ -156,7 +165,7 @@ function create() {
     this.physics.add.collider(walls, player);
 
     this.physics.add.collider(obstacles, obstacles);
-    this.physics.add.collider(bullets, obstacles); // agregar aqui funcion para destruir
+    this.physics.add.collider(bullets, obstacles, destroyMeteor); // agregar aqui funcion para destruir
     this.physics.add.collider(player, obstacles, hitMeteor, null, this);
 
 
@@ -225,7 +234,7 @@ var regular_speed = 200
 var max_speed = 500
 var slow_speed = 100
 
-function update() {
+function update(time, delta) {
 
 
     if (gameOver) {
@@ -254,10 +263,16 @@ function update() {
         }
     }
 
+    if(cursors.up.isDown){
+        flag = 4;
+    }
+    else if(cursors.down.isDown){
+        flag = 3;
+    }
 
     if (cursors.left.isDown) {
         player.body.angularVelocity = -200;
-        flag = true;
+        flag = 1;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
@@ -265,7 +280,7 @@ function update() {
     }
     else if (cursors.right.isDown) {
         player.body.angularVelocity = 200;
-        flag = false;
+        flag = 2;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
@@ -274,6 +289,7 @@ function update() {
     else {
         player.body.angularVelocity = 0;
     }
+
     if (cursors.space.isDown && time > lastFired)
     {
         var bullet = bullets.get();
@@ -353,6 +369,10 @@ function hitMeteor (player, obstacle)
 
     // gameOver = true;
 
+}
+
+function destroyMeteor (bullets, obstacles){
+    obstacles.destroy();
 }
 
 function createBulletEmitter ()

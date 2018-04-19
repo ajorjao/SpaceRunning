@@ -31,7 +31,7 @@ var gameOver;
 var bullets= null;
 var flares = null;
 var lastFired = 0;
-var flag = true;
+var flag = 1;
 
 var game = new Phaser.Game(config);
 
@@ -86,17 +86,25 @@ function create() {
         {
             this.setPosition(player.x, player.y);
 
-            if (flag)
+            console.log(flag);
+            if (flag == 1)
             {
-                console.log("bbb");
                 //  Facing left
                 this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.x, 1);
             }
-            else
+            else if(flag == 2)
             {
-                console.log("aaaa");
                 //  Facing right
                 this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.x, 1);
+            }
+            else if(flag == 3){
+
+                //facing up
+                this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.y, 1);
+            }
+            else{
+                //facing down
+                this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.y, 1);
             }
 
             this.born = 0;
@@ -104,7 +112,13 @@ function create() {
 
         update: function (time, delta)
         {
-            this.x += this.speed * delta;
+            if(flag == 1 || flag == 2){
+                this.x += this.speed * delta;
+            }
+            else{
+                this.y += this.speed * delta;
+            }
+            
 
             this.born += delta;
 
@@ -124,9 +138,6 @@ function create() {
     // mapa
     walls = this.physics.add.staticGroup();
 	walls.create(100, 100, 'hwall');
-
-
-
 
 
 
@@ -219,10 +230,19 @@ function update() {
         }
     }
 
+    if(cursors.up.isDown){
+        console.log("up!");
+        flag = 3;
+    }
+    else if(cursors.down.isDown){
+        console.log("down!");
+        flag = 4;
+    }
 
     if (cursors.left.isDown) {
+        console.log("left!");
         player.body.angularVelocity = -200;
-        flag = true;
+        flag = 1;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
@@ -230,7 +250,7 @@ function update() {
     }
     else if (cursors.right.isDown) {
         player.body.angularVelocity = 200;
-        flag = false;
+        flag = 2;
         if (cursors.up.isUp && cursors.down.isUp) {
             // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)

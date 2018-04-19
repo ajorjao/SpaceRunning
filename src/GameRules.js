@@ -24,6 +24,7 @@ var config = {
 
 var player;
 var obstacles;
+var walls;
 var stageBG;
 var cursors;
 var gameOver;
@@ -45,6 +46,8 @@ function preload() {
     this.load.image('player_shutdown','img/nave_shutdown2.png');
     this.load.image('player_turbo','img/nave_turbo2.png');
     this.load.image('meteor','img/meteor.png');
+    this.load.image('vwall','img/Vlaserwall.png')
+    this.load.image('hwall','img/Hlaserwall.png')
     // this.load.tilemapWeltmeister('map','img/cybernoid.json');
 
 }
@@ -62,6 +65,17 @@ function create() {
 
     // var map = this.make.tilemap({ key: 'map' });
     
+    console.log(this)
+
+    // mapa
+    walls = this.physics.add.staticGroup();
+	walls.create(100, 100, 'hwall');
+
+
+
+
+
+
     obstacles = this.physics.add.group();
     // obstacles.create(320, 320, 'meteor').setScale(0.5).refreshBody();
     for (var i = 0; i < 7; i++) {
@@ -86,6 +100,8 @@ function create() {
     player.setCircle(21,12,-1)
     // this.physics.add.body(0, 500, 800, 64).setFixed();
 
+
+    this.physics.add.collider(walls, player);
 
     this.physics.add.collider(obstacles, obstacles);
     this.physics.add.collider(player, obstacles, hitMeteor, null, this);
@@ -187,7 +203,7 @@ function acelerationFromAngle(player, aceleration, permited=regular_speed){
             player.setVelocity(newVelX, newVelY);
         }
         else{
-            reduceVelTo(player, permited)
+            reduceVelTo(player, permited-50)
         }
     }
     else{

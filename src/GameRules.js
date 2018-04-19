@@ -10,11 +10,11 @@ var config = {
             arcade: {
                 // gravity: { y: 300 },
                 maxVelocity: 600,
-                debug: true
+                debug: false
             },
             impact: {
                 maxVelocity: 500,
-                debug: true
+                debug: false
             }
         },
     },
@@ -117,15 +117,8 @@ function create() {
 
     });
 
-    // var map = this.make.tilemap({ key: 'map' });
     
-    console.log(this)
-
-    // mapa
-    walls = this.physics.add.staticGroup();
-	walls.create(100, 100, 'hwall');
-
-
+    // console.log(this)
 
 
 
@@ -140,22 +133,25 @@ function create() {
         // this.make.tilemap({ key: 'map' });
         meteor.setBounce(1);
         meteor.setCollideWorldBounds(true);
-        meteor.scaleX = 0.3
-        meteor.scaleY = 0.3
-        meteor.setCircle(23,235,215)
+        // meteor.scaleX = 0.3
+        // meteor.scaleY = 0.3
+        // meteor.setCircle(23,235,215)
+        meteor.scaleX = 0.4
+        meteor.scaleY = 0.4
+        meteor.setCircle(30,160,145)
 
-        meteor.setVelocity(Phaser.Math.Between(-100, 100), Phaser.Math.Between(-100, 100));
+        meteor.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(-200, 200));
     }
 
     bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
 
-    player = this.physics.add.sprite(600, 500, 'player');
+
+    walls = this.physics.add.staticGroup();
+    etapa_1(this)
+
     player.setBounce(1.2);
     player.setCollideWorldBounds(true);
-
-    player.setCircle(21,12,-1)
-    // this.physics.add.body(0, 500, 800, 64).setFixed();
-
+    player.setCircle(23,8,-3)
 
     this.physics.add.collider(walls, player);
 
@@ -178,7 +174,46 @@ function create() {
 
 }
 
+function etapa_1(dis){
+    var mx = 120 //margin left
+    var my = 120 //margin top
 
+    player = dis.physics.add.sprite(208+mx, 208+my, 'player');
+
+    walls.create(208+mx, 0+0+my, 'hwall');
+    walls.create(624+mx, 0-32+my, 'hwall');
+    walls.create(1040+mx, 0+0+my, 'hwall');
+    walls.create(1456+mx, 0-32+my, 'hwall');
+
+    walls.create(624+mx, 416-32+my, 'hwall');
+    walls.create(1040+mx, 416+0+my, 'hwall');
+
+    walls.create(624+mx, 1248+0+my, 'hwall');
+    walls.create(1040+mx, 1248-32+my, 'hwall');
+
+    walls.create(208+mx, 1664+0+my, 'hwall');
+    walls.create(624+mx, 1664-32+my, 'hwall');
+    walls.create(1040+mx, 1664-64+my, 'hwall');
+    walls.create(1456+mx, 1664-32+my, 'hwall');
+
+
+
+    walls.create(0+0+mx, 208+my, 'vwall');
+    walls.create(0+32+mx, 624+my, 'vwall');
+    walls.create(0+0+mx, 1040+my, 'vwall');
+    walls.create(0-32+mx, 1456+my, 'vwall');
+
+    walls.create(416+0+mx, 624+my, 'vwall');
+    walls.create(416-32+mx, 1040+my, 'vwall');
+
+    walls.create(1248+0+mx, 624+my, 'vwall');
+    walls.create(1248+32+mx, 1040+my, 'vwall');
+
+    walls.create(1664+0+mx, 208+my, 'vwall');
+    walls.create(1664+0+mx, 624+my, 'vwall');
+    walls.create(1664-32+mx, 1040+my, 'vwall');
+    walls.create(1664+0+mx, 1456+my, 'vwall');
+}
 
 
 

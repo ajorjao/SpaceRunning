@@ -67,7 +67,7 @@ function preload ()
 
     // this.load.image('kenney_redux_64x64', 'assets/tilemaps/tiles/kenney_redux_64x64.png');
     // this.load.image('cybernoid', 'assets/tilemaps/tiles/cybernoid.png');
-    this.load.image('walls', 'img/walls.png');
+    this.load.image('walls', 'img/walls2.png');
     this.load.spritesheet('player', 'assets/sprites/dude-cropped.png', { frameWidth: 32, frameHeight: 42 });
     this.load.image('box', 'assets/sprites/box-item-boxed.png');
 }
@@ -87,6 +87,9 @@ function create ()
     this.matter.world.setBounds(map.widthInPixels, map.heightInPixels);
     this.matter.world.createDebugGraphic();
     this.matter.world.drawDebug = false;
+
+    // this.cameras.add(450, 250, 350, 350, false, 'mini_map')
+    // this.cameras.cameras[1].zoom = 0.1
 
     cursors = this.input.keyboard.createCursorKeys();
     smoothedControls = new SmoothedHorionztalControl(0.0005);
@@ -145,7 +148,7 @@ function create ()
     playerController.matterSprite
         .setExistingBody(compoundBody)
         .setFixedRotation() // Sets max inertia to prevent rotation
-        .setPosition(630, 300);
+        .setPosition(630, 400);
 
     // this.matter.add.image(630, 750, 'box');
     // this.matter.add.image(630, 650, 'box');

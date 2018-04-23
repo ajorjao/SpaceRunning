@@ -175,7 +175,6 @@ function create() {
     });
    	player.setBounce(1.5);
    	player.setFriction(0,0,0);
-    // player.setMass(30);
     player.setFixedRotation();
 
 
@@ -212,8 +211,6 @@ function create() {
 
 }
 
-// function etapa_1(dis){
-// }
 
 
 
@@ -239,7 +236,8 @@ function update(time, delta) {
     if (cursors.up.isDown) {
         increaseVelTo(player, max_speed)
         player.setTexture('player_turbo')
-        this.cameras.cameras[0].zoom = 0.95
+   		player.setBounce(0.6);
+        // this.cameras.cameras[0].zoom = 0.95
     }
     else if (cursors.down.isDown) {
         reduceVelTo(player, slow_speed)
@@ -249,6 +247,7 @@ function update(time, delta) {
     }
     else {
         player.setTexture('player')
+   		player.setBounce(1.5);
         this.cameras.cameras[0].zoom = 1
         if (player.body.speed <= regular_speed) {
             increaseVelTo(player, regular_speed);
@@ -288,7 +287,8 @@ function update(time, delta) {
     }
 
     // if (cursors.space.isDown && time > lastFired)
-    // {
+    if (cursors.space.isDown) {
+    	createBullet(this)
     //     var bullet = bullets.get();
     //     bullet.setActive(true);
     //     bullet.setVisible(true);
@@ -299,7 +299,7 @@ function update(time, delta) {
 
     //         lastFired = time + 100;
     //     }
-    // }
+    }
 
 }
 
@@ -352,7 +352,7 @@ function reduceVelTo(player, permited, brakePower=0.5){
     }
 }
 
-function increaseVelTo(player, permited, acelPower=1){
+function increaseVelTo(player, permited, acelPower=0.1){
     acelerationFromAngle(player, acelPower, permited);
 }
 
@@ -373,15 +373,30 @@ function destroyMeteor (bullets, obstacles){
     obstacles.destroy();
 }
 
-function createBulletEmitter ()
-{
-    this.flares = this.add.particles('flares').createEmitter({
-        x: 1600,
-        y: 200,
-        angle: { min: 170, max: 190 },
-        scale: { start: 0.4, end: 0.2 },
-        blendMode: 'ADD',
-        lifespan: 500,
-        on: false
-    });
+// function createBulletEmitter ()
+// {
+//     this.flares = this.add.particles('flares').createEmitter({
+//         x: 1600,
+//         y: 200,
+//         angle: { min: 170, max: 190 },
+//         scale: { start: 0.4, end: 0.2 },
+//         blendMode: 'ADD',
+//         lifespan: 500,
+//         on: false
+//     });
+// }
+
+function createBullet (dis){
+	var x = player.body.position.x
+	var y = player.body.position.y
+	var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
+    var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
+
+	var bullet = dis.matter.add.image(x+10, y+10, 'bullet')//.setBounce(1).setFriction(0,0,0).setVelocity(velX, velY).setMass(10);
+	// bullet.setIgnoreGravity(100);
+
+	console.log(bullet)
+	setTimeout(function(){
+		bullet.destroy();
+	}, 1000);
 }

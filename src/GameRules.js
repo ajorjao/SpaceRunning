@@ -35,29 +35,20 @@ var walls;
 var stageBG;
 var cursors;
 var gameOver;
-var bullets= null;
-var flares = null;
-var lastFired = 0;
-var flag = 1;
+var bullets;
 
 var game = new Phaser.Game(config);
 
 
 
-
-
-
-
-
 function preload() {
 
-    this.load.image('background','img/space2.png');
+    // this.load.image('background','img/space2.png');
+    this.load.image('stage1','img/etapa1.png');
     this.load.image('player','img/nave.png');
     this.load.image('player_shutdown','img/nave_shutdown2.png');
     this.load.image('player_turbo','img/nave_turbo2.png');
     this.load.image('alien','img/alien.png');
-    // this.load.image('vwall','img/Vlaserwall.png')
-    // this.load.image('hwall','img/Hlaserwall.png')
     this.load.image('bullet', 'img/bullets.png');
 
     this.load.tilemapTiledJSON('map', 'img/etapa1.json');
@@ -73,74 +64,8 @@ function preload() {
 
 
 function create() {
-    stageBG = this.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
+    this.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
     this.physics.world.setBounds(1, 1, 1920, 1920);
-
-    // var Bullet = new Phaser.Class({
-
-
-    //     Extends: Phaser.GameObjects.Image,
-
-    //     initialize:
-
-
-    //     function Bullet (scene)
-    //     {
-    //         Phaser.GameObjects.Image.call(this, scene, 0, 0, 'bullet');
-
-    //         this.speed = 0;
-    //         this.born = 0;
-    //     },
-
-    //     fire: function (player)
-    //     {
-    //         this.setPosition(player.x, player.y);
-
-    //         if (flag == 1)
-    //         {
-    //             //  Facing left
-    //             this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.x, 1);
-    //         }
-    //         else if(flag == 2)
-    //         {
-    //             //  Facing right
-    //             this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.x, 1);
-    //         }
-    //         else if(flag == 3){
-
-    //             //facing up
-    //             this.speed = Phaser.Math.GetSpeed(1000 + player.body.velocity.y, 1);
-    //         }
-    //         else{
-    //             //facing down
-    //             this.speed = Phaser.Math.GetSpeed(-1000 + player.body.velocity.y, 1);
-    //         }
-
-    //         this.born = 0;
-    //     },
-
-    //     update: function (time, delta)
-    //     {
-    //         if(flag == 1 || flag == 2){
-    //             this.x += this.speed * delta;
-    //         }
-    //         else{
-    //             this.y += this.speed * delta;
-    //         }
-            
-
-    //         this.born += delta;
-
-    //         if (this.born > 500)
-    //         {
-    //             this.setActive(false);
-    //             this.setVisible(false);
-    //         }
-    //     }
-
-    // });
-
-    console.log(this)
 
     var map = this.make.tilemap({ key: 'map' });
     var tileset = map.addTilesetImage('walls');
@@ -151,38 +76,38 @@ function create() {
     this.matter.world.convertTilemapLayer(layer);
     this.matter.world.setBounds(1, 1, 1920, 1920);
 
+    // Categorias de colisiones
+    var nave = this.matter.world.nextCategory();
+    var obstacles = this.matter.world.nextCategory();
+    bullets = this.matter.world.nextCategory();
 
     // DESCOMETAR ESTA LINEA SI SE DESEA VER LAS COLISIONES! (warning, se verá muy lento el juego)
     // this.matter.world.createDebugGraphic();
 
-
     var playerBody = this.matter.world.fromPath('58 16 58 21 0 39 0 0');
-   	player = this.matter.add.image(600, 400, 'player', null, {
-   		shape: {
-   			type: 'fromVerts',
-   			verts: playerBody
-   		},
-        plugin: {
-            attractors: [
-                function (bodyA, bodyB) {
-                    return {
-                        x: (bodyA.position.x - bodyB.position.x) * 0.000001,
-                        y: (bodyA.position.y - bodyB.position.y) * 0.000001
-                    };
-                }
-            ]
-        }
-    });
-   	player.setBounce(1.5);
-   	player.setFriction(0,0,0);
-    player.setFixedRotation();
+    player = this.matter.add.image(600, 400, 'player', null, {
+        shape: {
+            type: 'fromVerts',
+            verts: playerBody,
+            Mass: 100
+        },
+        // plugin: {
+        //     attractors: [
+        //         function (bodyA, bodyB) {
+        //             return {
+        //                 x: (bodyA.position.x - bodyB.position.x) * 0.000001,
+        //                 y: (bodyA.position.y - bodyB.position.y) * 0.000001
+        //             };
+        //         }
+        //     ]
+        // }
+    }).setBounce(1.5).setFriction(0,0,0).setFixedRotation();
+    player.setCollisionCategory(nave);
 
 
+    var spawn_points_etapa1 = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]]
 
-	var spawn_points_etapa1 = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]]
-
-	var obstacles = this.matter.world.nextCategory();
-	for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 7; i++) {
         var pos = spawn_points_etapa1[i]
         var alien = this.matter.add.image(pos[0], pos[1], 'alien').setBounce(1).setFriction(0,0,0);
         alien.scaleX = 0.4
@@ -191,12 +116,9 @@ function create() {
         alien.setMass(3);
 
         alien.setCollisionCategory(obstacles);
-    }	
+        alien.setCollidesWith([nave])
+    }
     
-    // bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true });
-
-
-
 
     this.cameras.main.setSize(800, 600);
     this.cameras.main.startFollow(player);
@@ -205,6 +127,19 @@ function create() {
     this.cameras.cameras[1].zoom = 0.1
 
     // console.log(this)
+
+
+    this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+
+        dictionary = {1: "muros", 2: "player", 4: "aliens", 8: "bala"}
+        console.log(dictionary[bodyA.collisionFilter.category]+" choca con "+dictionary[bodyB.collisionFilter.category])
+        // console.log(bodyA.collisionFilter.category)
+        // console.log(bodyB.collisionFilter.category)
+        // bodyA.gameObject.setTint(0xff0000);
+        // bodyB.gameObject.setTint(0x00ff00);
+    });
+
+
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -237,13 +172,11 @@ function update(time, delta) {
         increaseVelTo(player, max_speed)
         player.setTexture('player_turbo')
    		player.setBounce(0.6);
-        // this.cameras.cameras[0].zoom = 0.95
     }
     else if (cursors.down.isDown) {
         reduceVelTo(player, slow_speed)
         player.setTexture('player_shutdown')
 
-        // console.log(player.body.position)
     }
     else {
         player.setTexture('player')
@@ -257,28 +190,16 @@ function update(time, delta) {
         }
     }
 
-    // if(cursors.up.isDown){
-    //     flag = 4;
-    // }
-    // else if(cursors.down.isDown){
-    //     flag = 3;
-    // }
 
     if (cursors.left.isDown) {
-        // player.body.angularVelocity = -200;
         player.setAngularVelocity(-0.075)
-        // flag = 1;
         if (cursors.up.isUp && cursors.down.isUp) {
-            // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
         }
     }
     else if (cursors.right.isDown) {
     	player.setAngularVelocity(0.075)
-        // player.body.angularVelocity = 200;
-        // flag = 2;
         if (cursors.up.isUp && cursors.down.isUp) {
-            // this.physics.velocityFromAngle(player.angle, 150, player.body.velocity);
             reduceVelTo(player, regular_speed)
         }
     }
@@ -288,17 +209,20 @@ function update(time, delta) {
 
     // if (cursors.space.isDown && time > lastFired)
     if (cursors.space.isDown) {
-    	createBullet(this)
-    //     var bullet = bullets.get();
-    //     bullet.setActive(true);
-    //     bullet.setVisible(true);
+        var x = Math.cos(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.x
+        var y = Math.sin(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.y
 
-    //     if (bullet)
-    //     {
-    //         bullet.fire(player);
+        var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
+        var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
 
-    //         lastFired = time + 100;
-    //     }
+        var bullet = this.matter.add.image(x, y, 'bullet').setBounce(1).setFriction(0,0,0).setVelocity(velX, velY).setAngle(player.angle);
+        bullet.setCollisionCategory(bullets)
+        // console.log(bullet)
+
+        setTimeout(function(){
+            bullet.destroy();
+        }, 250);
+
     }
 
 }
@@ -385,18 +309,3 @@ function destroyMeteor (bullets, obstacles){
 //         on: false
 //     });
 // }
-
-function createBullet (dis){
-	var x = player.body.position.x
-	var y = player.body.position.y
-	var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
-    var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
-
-	var bullet = dis.matter.add.image(x+10, y+10, 'bullet')//.setBounce(1).setFriction(0,0,0).setVelocity(velX, velY).setMass(10);
-	// bullet.setIgnoreGravity(100);
-
-	console.log(bullet)
-	setTimeout(function(){
-		bullet.destroy();
-	}, 1000);
-}

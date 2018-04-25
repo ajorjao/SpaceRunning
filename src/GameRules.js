@@ -32,18 +32,22 @@ var config = {
 // ship speeds
 var regular_speed = 5;
 var max_speed = 10;
-var slow_speed = 2.5;
+// var slow_speed = 2.5;
+var slow_speed = 0;
 
-//categoria tokens
-var walls = 1;
+//categorias tokens
+var walls;
 var alies;
 var obstacles;
 var bullets;
+var collisionTokens;
 
 //map global variables
 var player;
 var gameOver = false;
 var canShot = true;
+var spawn_points; //posicion de spawns de enemigos
+var stage_obstacles;
 var cursors;
 
 var game = new Phaser.Game(config);
@@ -78,37 +82,21 @@ function preload() {
 
 
 function create() {
-    this.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
-    this.physics.world.setBounds(1, 1, 1920, 1920);
-
-    var map = this.make.tilemap({ key: 'map' });
-    var tileset = map.addTilesetImage('walls');
-    var layer = map.createDynamicLayer(0, tileset, 0, 0);
-
-    map.setCollisionByProperty({ collides: true });
-
-    this.matter.world.convertTilemapLayer(layer);
-    this.matter.world.setBounds(1, 1, 1920, 1920);
-
     // Categorias de colisiones
+    walls = 1;
     alies = this.matter.world.nextCategory();
     obstacles = this.matter.world.nextCategory();
     bullets = this.matter.world.nextCategory();
 
+    collisionTokens = {
+        "alies": [walls, obstacles],
+        "obstacles": [walls, alies, obstacles, bullets],
+        "bullets": [walls, obstacles]
+    }
+
     // DESCOMETAR ESTA LINEA SI SE DESEA VER LAS COLISIONES! (warning, se verá muy lento el juego)
-    // this.matter.world.createDebugGraphic();
-
-    var playerBody = this.matter.world.fromPath('58 16 58 21 0 39 0 0');
-    player = this.matter.add.image(600, 400, 'player', null, {
-        shape: {
-            type: 'fromVerts',
-            verts: playerBody,
-            Mass: 100
-        },
-    }).setBounce(1.5).setFriction(0,0,0).setFixedRotation();
-    player.setCollisionCategory(alies);
-    player.setCollidesWith([walls, obstacles])
-
+    this.matter.world.createDebugGraphic();
+    this.matter.world.drawDebug = false;
 
     this.anims.create({
         key: 'explode',
@@ -117,35 +105,26 @@ function create() {
         repeat: -1
     });
 
-
-    var spawn_points_etapa1 = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]]
-
-    for (var i = 0; i < spawn_points_etapa1.length; i++) {
-        var pos = spawn_points_etapa1[i]
-        var alien = this.matter.add.image(pos[0], pos[1], 'alien').setBounce(1).setFriction(0,0,0);
-        alien.scaleX = 0.4
-        alien.scaleY = 0.4
-        alien.setCircle(30,160,145)
-        alien.setMass(3);
-
-        alien.setCollisionCategory(obstacles);
-    }
-    
-
     this.cameras.main.setSize(800, 600);
-    this.cameras.main.startFollow(player);
-
     this.cameras.add(450, 250, 350, 350, false, 'mini_map')
     this.cameras.cameras[1].zoom = 0.1
 
 
 
-    this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
 
-        // dictionary = {1: "muros", 2: "player", 4: "obstacles", 8: "bullet"}
+
+    stage_obstacles = etapa1(this);
+
+    this.cameras.main.startFollow(player);
+
+
+
+
+    this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
 
         var Acategory = bodyA.collisionFilter.category
         var Bcategory = bodyB.collisionFilter.category
+        //Colision de alien con balas
         if ((Acategory == bullets && Bcategory == obstacles) || (Bcategory == bullets && Acategory == obstacles)) {
             if (Acategory == obstacles){
                 var obstacle = bodyA;
@@ -156,34 +135,28 @@ function create() {
                 var obstacle = bodyB;
             }
 
-
             bullet.gameObject.destroy()
-            obstacle.gameObject.destroy();
-            // obstacle.gameObject.setTexture('explosion')
-
-            var explosion = this.scene.matter.add.sprite(obstacle.position.x, obstacle.position.y, 'explosion');
-            explosion.anims.play('explode', true)
-            explosion.setCollidesWith([]);
-            var dis = this
-
-            //alien respawn
-            setTimeout(function(){
-                explosion.destroy()
-                pos = spawn_points_etapa1[Phaser.Math.Between(0, spawn_points_etapa1.length-1)]
-                var alien = dis.scene.matter.add.image(pos[0], pos[1], 'alien').setBounce(1).setFriction(0,0,0);
-                alien.scaleX = 0.4
-                alien.scaleY = 0.4
-                alien.setCircle(30,160,145)
-                alien.setMass(3);
-
-                alien.setCollisionCategory(obstacles);
-            }, 600);
-
+            obstacleDestroy(this.scene, obstacle, obstacles, collisionTokens["obstacles"], spawn_points, stage_obstacles)
         }
 
-        // cam.fade(500, 0, 0, 0);
-        // cam.shake(250, 0.01);
+        //Colision de alien con muros
+        else if ((Acategory == walls && Bcategory == obstacles) || (Bcategory == walls && Acategory == obstacles)) {
+            if (Acategory == obstacles){
+                var obstacle = bodyA;
+                var wall = bodyB;
+            }
+            else{
+                var wall = bodyA;
+                var obstacle = bodyB;
+            }
 
+            setRandomDirection(obstacle.gameObject, 7)
+        }
+
+        //Colision de alien con personaje
+        else if ((Acategory == alies && Bcategory == obstacles) || (Bcategory == alies && Acategory == obstacles)) {
+            playerDestroy(this.scene, player, stage_obstacles)
+        }
         // bodyA.gameObject.setTint(0xff0000); //rojo
         // bodyB.gameObject.setTint(0x00ff00); //verde
     });
@@ -206,11 +179,6 @@ function create() {
 
 function update(time, delta) {
 
-
-    // if (gameOver) {
-    //     return;
-    // }
-
     if (cursors.up.isDown) {
         increaseVelTo(player, max_speed)
         player.setTexture('player_turbo')
@@ -224,7 +192,7 @@ function update(time, delta) {
     else {
         player.setTexture('player')
    		player.setBounce(1.5);
-        this.cameras.cameras[0].zoom = 1
+        // this.cameras.cameras[0].zoom = 1
         if (player.body.speed <= regular_speed) {
             increaseVelTo(player, regular_speed);
         }
@@ -253,24 +221,7 @@ function update(time, delta) {
     // if (cursors.space.isDown && time > lastFired)
     if (cursors.space.isDown && canShot) {
         canShot = false;
-        var x = Math.cos(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.x
-        var y = Math.sin(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.y
-
-        var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
-        var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
-
-        // var bullet = this.matter.add.image(x, y, 'bullet').setBounce(1).setFriction(0,0,0).setVelocity(velX, velY).setAngle(player.angle);
-        var bullet = this.matter.add.image(x, y, 'bullet', null, {
-            restitution: 1.009, 
-            frictionAir: 0,
-            angle: player.angle
-        }).setVelocity(velX, velY)//.setAngle(player.angle).setBounce(1).setFriction(0,0,0);
-        bullet.setCollisionCategory(bullets)
-        bullet.setCollidesWith([walls, obstacles])
-
-        setTimeout(function(){
-            bullet.destroy();
-        }, 500);
+        createBullet(this, player, bullets, [walls, obstacles])
 
         setTimeout(function(){
             canShot = true;
@@ -278,87 +229,44 @@ function update(time, delta) {
 
     }
 
+    this.input.on('pointerdown', function () {
+        this.matter.world.drawDebug = !this.matter.world.drawDebug;
+        this.matter.world.debugGraphic.visible = this.matter.world.drawDebug;
+    }, this);
 }
 
 
 
 
 
+function etapa1(dis, num_enemies=-1, includingMap=true){
+    if (includingMap){
+        dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
+        
+        var map = dis.make.tilemap({ key: 'map' });
+        var tileset = map.addTilesetImage('walls');
+        var layer = map.createDynamicLayer(0, tileset, 0, 0);
 
+        map.setCollisionByProperty({ collides: true });
 
+        dis.matter.world.convertTilemapLayer(layer);
+        dis.matter.world.setBounds(1, 1, 1920, 1920);
 
+        createPlayer(dis, [600, 400], alies, collisionTokens["alies"]);
 
-function acelerationFromAngle(player, aceleration, permited=regular_speed){
-    var newVelX;
-    newVelX = Math.cos(Phaser.Math.DegToRad(player.angle))*aceleration + player.body.velocity.x;
-    var newVelY;
-    newVelY = Math.sin(Phaser.Math.DegToRad(player.angle))*aceleration + player.body.velocity.y;
-
-    if (player.body.speed > permited) {
-        var newSpeed = (newVelX**2 + newVelY**2)**(1/2)
-        if (newSpeed < player.body.speed){
-            player.setVelocity(newVelX, newVelY);
-        }
-        else{
-            reduceVelTo(player, permited-50)
-        }
+        spawn_points = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]];
     }
-    else{
-        player.setVelocity(newVelX, newVelY);
+
+    console.log(num_enemies)
+    if (num_enemies<0){
+        num_enemies = spawn_points.length;
     }
-}
 
-function reduceVelTo(player, permited, brakePower=0.5){
-    if (player.body.speed >= permited) {
-        // acelerationFromAngle(player, -brakePower);
-        var newVelX;
-        if (player.body.velocity.x>0){
-            newVelX = player.body.velocity.x - brakePower;
-        }
-        else {
-            newVelX = player.body.velocity.x + brakePower;
-        }
-        var newVelY;
-        if (player.body.velocity.y>0){
-            newVelY = player.body.velocity.y - brakePower;
-        }
-        else {
-            newVelY = player.body.velocity.y + brakePower;
-        }
-        player.setVelocity(newVelX, newVelY);
+    stage_obstacles = []
+    for (var i = 0; i < num_enemies; i++) {
+        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+        stage_obstacles.push(createAlien(dis, pos, obstacles, collisionTokens["obstacles"]));
     }
+
+    return stage_obstacles
 }
-
-function increaseVelTo(player, permited, acelPower=0.1){
-    acelerationFromAngle(player, acelPower, permited);
-}
-
-function hitMeteor (player, obstacle)
-{
-    // this.physics.pause();
-
-    // player.setTint(0xff0000);
-
-    // player.anims.play('turn');
-
-    // gameOver = true;
-    console.log("Boom!")
-
-}
-
-function destroyMeteor (bullets, obstacles){
-    obstacles.destroy();
-}
-
-// function createBulletEmitter ()
-// {
-//     this.flares = this.add.particles('flares').createEmitter({
-//         x: 1600,
-//         y: 200,
-//         angle: { min: 170, max: 190 },
-//         scale: { start: 0.4, end: 0.2 },
-//         blendMode: 'ADD',
-//         lifespan: 500,
-//         on: false
-//     });
-// }

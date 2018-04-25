@@ -32,8 +32,8 @@ var config = {
 // ship speeds
 var regular_speed = 5;
 var max_speed = 10;
-// var slow_speed = 2.5;
-var slow_speed = 0;
+var slow_speed = 2.5;
+// var slow_speed = 0;
 
 //categorias tokens
 var walls;
@@ -49,6 +49,8 @@ var canShot = true;
 var spawn_points; //posicion de spawns de enemigos
 var stage_obstacles;
 var cursors;
+var isPaused = true;
+var enemiesText;
 
 var game = new Phaser.Game(config);
 
@@ -66,7 +68,6 @@ function preload() {
     this.load.image('alien','img/alien.png');
     this.load.image('bullet', 'img/bullets.png');
 
-    // this.load.image('explosion', 'img/explosion.gif')
     this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
 
     this.load.tilemapTiledJSON('map', 'img/etapa1.json');
@@ -111,12 +112,9 @@ function create() {
 
 
 
-
-
     stage_obstacles = etapa1(this);
 
     this.cameras.main.startFollow(player);
-
 
 
 
@@ -255,18 +253,25 @@ function etapa1(dis, num_enemies=-1, includingMap=true){
         createPlayer(dis, [600, 400], alies, collisionTokens["alies"]);
 
         spawn_points = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]];
+
+        startTimeBar(120); //barra de tiempo en segundos
+        isPaused = false;
+
+        enemiesText = dis.add.text(400, 210, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
+        // enemiesText.fixedToCamera = 1;
     }
 
-    console.log(num_enemies)
     if (num_enemies<0){
         num_enemies = spawn_points.length;
     }
 
     stage_obstacles = []
     for (var i = 0; i < num_enemies; i++) {
-        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+        //no se considera el ultimo spawn point al iniciar la etapa ya que está muy cerca del personaje
+        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-2)];
         stage_obstacles.push(createAlien(dis, pos, obstacles, collisionTokens["obstacles"]));
     }
 
+    enemiesText.setText('Nº enemigos: '+num_enemies);
     return stage_obstacles
 }

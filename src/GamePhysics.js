@@ -16,9 +16,9 @@ function createPlayer(dis, pos, category, collisionCategories){
 }
 
 
-function playerDestroy(dis, player, stage_obstacles)
-{
+function playerDestroy(dis, player, stage_obstacles){
     dis.matter.pause();
+    isPaused = true;
     dis.cameras.main.shake(250, 0.01);
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
@@ -34,12 +34,13 @@ function playerDestroy(dis, player, stage_obstacles)
 
         etapa1(dis, num_enemies-1, false);
 
-        dis.cameras.main.fadeIn(1000)
-        dis.cameras.cameras[1].fadeIn(1000)
+        dis.cameras.main.fadeIn(1000);
+        dis.cameras.cameras[1].fadeIn(1000);
 
         setTimeout(function() {
-            dis.matter.resume()
-        }, 1000);
+            dis.matter.resume();
+            isPaused = false;
+        }, 2000);
     }, 1000);
 
 }
@@ -105,6 +106,28 @@ function createBullet(dis, player, category, collisionCategories){
     setTimeout(function(){
         bullet.destroy();
     }, 500);
+}
+
+
+
+
+function startTimeBar(maxTime) {
+    var elem = document.getElementById("myBar");
+    var timeProgress = maxTime;
+    elem.innerHTML = maxTime + ' seg'
+    // var id = setInterval(frame, maxTime*10);
+    var id = setInterval(frame, 1000);
+    function frame() {
+        if (timeProgress <= 0) {
+            clearInterval(id);
+        } else {
+            if (!isPaused){
+                timeProgress--;
+                elem.style.width = timeProgress*100/maxTime + '%';
+                elem.innerHTML = timeProgress  + 'seg';
+            }
+        }
+    }
 }
 
 

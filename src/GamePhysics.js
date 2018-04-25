@@ -22,6 +22,7 @@ function playerDestroy(dis, player, stage_obstacles){
     dis.cameras.main.shake(250, 0.01);
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
+    changeScore(-100)
 
     setTimeout(function() {
         var num_enemies = stage_obstacles.length
@@ -69,6 +70,7 @@ function createAlien(dis, pos, category, collisionCategories){
 function obstacleDestroy(dis, obstacle, category, collisionCategories, spawn_points, stage_obstacles){
     
     obstacle.gameObject.destroy();
+    changeScore(+20)
     for (var i = 0; i < stage_obstacles.length; i++) {
         if (stage_obstacles[i].active == false){
             stage_obstacles.splice(i, 1);
@@ -115,7 +117,6 @@ function startTimeBar(maxTime) {
     var elem = document.getElementById("myBar");
     var timeProgress = maxTime;
     elem.innerHTML = maxTime + ' seg'
-    // var id = setInterval(frame, maxTime*10);
     var id = setInterval(frame, 1000);
     function frame() {
         if (timeProgress <= 0) {
@@ -123,11 +124,18 @@ function startTimeBar(maxTime) {
         } else {
             if (!isPaused){
                 timeProgress--;
+                changeScore(-10)
                 elem.style.width = timeProgress*100/maxTime + '%';
                 elem.innerHTML = timeProgress  + 'seg';
             }
         }
     }
+}
+
+
+function changeScore(changed) {
+    score += changed;
+    document.getElementById("score").innerHTML = 'Score: '+ score
 }
 
 

@@ -51,6 +51,7 @@ var stage_obstacles;
 var cursors;
 var isPaused = true;
 var enemiesText;
+var score = 0;
 
 var game = new Phaser.Game(config);
 
@@ -227,10 +228,11 @@ function update(time, delta) {
 
     }
 
-    this.input.on('pointerdown', function () {
-        this.matter.world.drawDebug = !this.matter.world.drawDebug;
-        this.matter.world.debugGraphic.visible = this.matter.world.drawDebug;
-    }, this);
+    // Esto sirve para ver las lineas de colision al hacer click
+    // this.input.on('pointerdown', function () {
+    //     this.matter.world.drawDebug = !this.matter.world.drawDebug;
+    //     this.matter.world.debugGraphic.visible = this.matter.world.drawDebug;
+    // }, this);
 }
 
 
@@ -255,6 +257,8 @@ function etapa1(dis, num_enemies=-1, includingMap=true){
         spawn_points = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]];
 
         startTimeBar(120); //barra de tiempo en segundos
+        changeScore(120*10)
+        
         isPaused = false;
 
         enemiesText = dis.add.text(400, 210, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });

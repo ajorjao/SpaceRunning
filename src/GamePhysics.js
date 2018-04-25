@@ -19,21 +19,21 @@ function createPlayer(dis, pos, category, collisionCategories){
 function playerDestroy(dis, player, stage_obstacles){
     dis.matter.pause();
     isPaused = true;
+    num_enemies-=1;
     dis.cameras.main.shake(250, 0.01);
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
     changeScore(-100)
 
     setTimeout(function() {
-        var num_enemies = stage_obstacles.length
-        for (var i = 0; i < num_enemies; i++) {
+        for (var i = 0; i < stage_obstacles.length; i++) {
             stage_obstacles[i].destroy()
         }
         player.x = 600
         player.y = 400
         player.angle = 0
 
-        etapa1(dis, num_enemies-1, false);
+        etapa1(dis, false);
 
         dis.cameras.main.fadeIn(1000);
         dis.cameras.cameras[1].fadeIn(1000);
@@ -41,6 +41,7 @@ function playerDestroy(dis, player, stage_obstacles){
         setTimeout(function() {
             dis.matter.resume();
             isPaused = false;
+
         }, 2000);
     }, 1000);
 
@@ -78,49 +79,68 @@ function obstacleDestroy(dis, obstacle, category, collisionCategories, spawn_poi
     }
 
     var explosion = dis.matter.add.sprite(obstacle.position.x, obstacle.position.y, 'explosion');
-    explosion.anims.play('explode', true)
+    explosion.anims.play('explode', true);
     explosion.setCollidesWith([]);
 
     //alien respawn
     setTimeout(function(){
         explosion.destroy();
+        var isInvalid;
         var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+        var distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+
+        while (distance<500){
+            console.log("spawn_invalido: "+pos)
+            pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+            distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+        }
+
         stage_obstacles.push(createAlien(dis, pos, category, collisionCategories));
     }, 1000);
 }
 
 
 function createBullet(dis, player, category, collisionCategories){
-    var x = Math.cos(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.x
-    var y = Math.sin(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.y
+    if (!isPaused){
+        var x = Math.cos(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.x
+        var y = Math.sin(Phaser.Math.DegToRad(player.angle))*40 + player.body.position.y
 
-    var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
-    var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
+        var velX = Math.cos(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.x;
+        var velY = Math.sin(Phaser.Math.DegToRad(player.angle))*10 + player.body.velocity.y;
 
-    var bullet = dis.matter.add.image(x, y, 'bullet', null, {
-        restitution: 1.009, 
-        frictionAir: 0,
-        angle: player.angle
-    }).setVelocity(velX, velY)
-    bullet.setCollisionCategory(category)
-    bullet.setCollidesWith(collisionCategories)
+        var bullet = dis.matter.add.image(x, y, 'bullet', null, {
+            restitution: 1.009, 
+            frictionAir: 0,
+            angle: player.angle+180
+        }).setVelocity(velX, velY)
+        bullet.setCollisionCategory(category)
+        bullet.setCollidesWith(collisionCategories)
 
-    setTimeout(function(){
-        bullet.destroy();
-    }, 500);
+        setTimeout(function(){
+            bullet.destroy();
+        }, 500);
+    }
 }
 
 
 
 
+function changeScore(changed) {
+    score += changed;
+    document.getElementById("score").innerHTML = 'Score: '+ score
+}
+
+
 function startTimeBar(maxTime) {
-    var elem = document.getElementById("myBar");
     var timeProgress = maxTime;
+    var elem = document.getElementById("myBar");
     elem.innerHTML = maxTime + ' seg'
     var id = setInterval(frame, 1000);
     function frame() {
         if (timeProgress <= 0) {
             clearInterval(id);
+            elem.innerHTML = '';
+            document.getElementById("myProgress").innerHTML = "Tiempo acabado"
         } else {
             if (!isPaused){
                 timeProgress--;
@@ -133,11 +153,33 @@ function startTimeBar(maxTime) {
 }
 
 
-function changeScore(changed) {
-    score += changed;
-    document.getElementById("score").innerHTML = 'Score: '+ score
-}
 
+function startIA(){
+    var movement = {0: setRandomDirection, 1: setOppositePlayerDirection, 2: setToPlayerDirection}
+    var id = setInterval(tryMove, 2000);
+    function tryMove() {
+        if (num_enemies<=0) {
+            clearInterval(id);
+        } else {
+            if (!isPaused){
+                for (var i = 0; i < stage_obstacles.length; i++) {
+                    obstacle = stage_obstacles[i];
+                    if (Phaser.Math.Between(0, 2) < 2 || obstacle.body.speed<3){ // 2/3 (66.6%) de que se mueva
+                        distance = Phaser.Math.Distance.Between(obstacle.body.position.x, obstacle.body.position.y, player.body.position.x, player.body.position.y)
+                        if (distance < 400){
+                            movement[2](obstacle, 4);
+                            obstacle.setTint(0xff8b00);
+                        }
+                        else{
+                            obstacle.setTint();
+                            movement[Phaser.Math.Between(0, 1)](obstacle, 6);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 
@@ -196,5 +238,20 @@ function setRandomDirection(object, velocity){
     var angle = Phaser.Math.Between(0,359)
     var newVelX = Math.cos(Phaser.Math.DegToRad(angle))*velocity
     var newVelY = Math.sin(Phaser.Math.DegToRad(angle))*velocity
+    object.setVelocity(newVelX, newVelY)
+}
+
+function setToPlayerDirection(object, velocity){
+    // console.log(object)
+    var angle = Phaser.Math.Angle.Between(object.body.position.x, object.body.position.y, player.body.position.x+player.body.velocity.x, player.body.position.y+player.body.velocity.y)
+    var newVelX = Math.cos(angle)*velocity
+    var newVelY = Math.sin(angle)*velocity
+    object.setVelocity(newVelX, newVelY)
+}
+
+function setOppositePlayerDirection(object, velocity){
+    var angle = player.angle-180
+    var newVelX = Math.cos(angle)*velocity
+    var newVelY = Math.sin(angle)*velocity
     object.setVelocity(newVelX, newVelY)
 }

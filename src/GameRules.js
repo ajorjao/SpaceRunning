@@ -52,6 +52,7 @@ var cursors;
 var isPaused = true;
 var enemiesText;
 var score = 0;
+var num_enemies = -1;
 
 var game = new Phaser.Game(config);
 
@@ -138,19 +139,19 @@ function create() {
             obstacleDestroy(this.scene, obstacle, obstacles, collisionTokens["obstacles"], spawn_points, stage_obstacles)
         }
 
-        //Colision de alien con muros
-        else if ((Acategory == walls && Bcategory == obstacles) || (Bcategory == walls && Acategory == obstacles)) {
-            if (Acategory == obstacles){
-                var obstacle = bodyA;
-                var wall = bodyB;
-            }
-            else{
-                var wall = bodyA;
-                var obstacle = bodyB;
-            }
+        // //Colision de alien con muros
+        // else if ((Acategory == walls && Bcategory == obstacles) || (Bcategory == walls && Acategory == obstacles)) {
+        //     if (Acategory == obstacles){
+        //         var obstacle = bodyA;
+        //         var wall = bodyB;
+        //     }
+        //     else{
+        //         var wall = bodyA;
+        //         var obstacle = bodyB;
+        //     }
 
-            setRandomDirection(obstacle.gameObject, 7)
-        }
+        //     setRandomDirection(obstacle.gameObject, 7)
+        // }
 
         //Colision de alien con personaje
         else if ((Acategory == alies && Bcategory == obstacles) || (Bcategory == alies && Acategory == obstacles)) {
@@ -239,7 +240,7 @@ function update(time, delta) {
 
 
 
-function etapa1(dis, num_enemies=-1, includingMap=true){
+function etapa1(dis, includingMap=true){
     if (includingMap){
         dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
         
@@ -252,21 +253,22 @@ function etapa1(dis, num_enemies=-1, includingMap=true){
         dis.matter.world.convertTilemapLayer(layer);
         dis.matter.world.setBounds(1, 1, 1920, 1920);
 
-        createPlayer(dis, [600, 400], alies, collisionTokens["alies"]);
+        createPlayer(dis, [500, 400], alies, collisionTokens["alies"]);
 
         spawn_points = [[1020,790], [1560,418], [1400,1070], [1570,1570], [915,1311], [467,1520], [600, 1000], [470, 422]];
 
         startTimeBar(120); //barra de tiempo en segundos
         changeScore(120*10)
+
+        num_enemies = spawn_points.length;
+        changeScore(100*num_enemies)
+        startIA()
+
         
         isPaused = false;
 
         enemiesText = dis.add.text(400, 210, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
         // enemiesText.fixedToCamera = 1;
-    }
-
-    if (num_enemies<0){
-        num_enemies = spawn_points.length;
     }
 
     stage_obstacles = []

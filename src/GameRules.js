@@ -322,10 +322,10 @@ function etapa1(dis, includingMap=true){
         stage_doors.push(createDoor(dis, [20.5*64, 15.5*64], "celeste", 0, 1, 3))
 
         createKey(dis, [23.5*64, 24.5*64], "rojo")
-        createKey(dis, [15.5*64, 5.5*64], "amarillo")
+        createKey(dis, [15.5*64, 5.5*64], "rosado")
+        createKey(dis, [15.5*64, 25.5*64], "amarillo")
         createKey(dis, [27.5*64, 15.5*64], "verde")
-        createKey(dis, [3.5*64, 15.5*64], "rosado")
-        createKey(dis, [15.5*64, 25.5*64], "celeste")
+        createKey(dis, [3.5*64, 15.5*64], "celeste")
 
         createPortal(dis, [15.5*64, 15.5*64])
 

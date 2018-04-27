@@ -1,29 +1,3 @@
-var config = {
-    type: Phaser.WEBGL,
-    scene: {
-        preload: preload,
-        create: create,
-        update: update,
-        physics: {
-            arcade: {
-                maxVelocity: 600,
-            },
-            matter: {
-	            gravity: {
-	                scale: 0
-	            },
-                plugins: {
-                	attractors: true
-                }
-            }
-        },
-    },
-    width: 800,
-    height: 600
-    // width: 1920,
-    // height: 1920
-};
-
 // ship speeds
 var regular_speed = 5;
 var max_speed = 10;
@@ -40,25 +14,20 @@ var portals;
 var collisionTokens;
 
 // stage global variables (se modifican cada vez que se cambia la etapa)
-var stages = [etapa1, etapa2];
-var this_stage;
-var stageBG;
+var player_spawn;
 var stage_obstacles;
 var stage_doors;
-var map;
-var tileset;
-var layer;
-var spawn_points; //posicion de spawns de enemigos
+var spawn_points;
 
 //global variables
 var player;
-var gameOver = false;
-var canShot = true;
-var isPaused = true;
-var enemiesText;
 var score = 0;
-var num_enemies = -1;
-var player_spawn;
+var this_life_score = 0;
+var num_enemies;
+var timeProgress;
+var isPaused = true;
+var canShot = true;
+var enemiesText;
 var cursors;
 var colors = { 
     "rojo":0xff8b00, 
@@ -70,230 +39,206 @@ var colors = {
     "naranjo":0xd47700
 }
 
+
+
+var Scene1 = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function Scene1 ()
+    {
+        Phaser.Scene.call(this, { key: 'scene1' });
+    },
+
+    preload: function () {
+        //player
+        this.load.image('player','img/nave.png');
+        this.load.image('player_turbo','img/nave_turbo.png');
+        this.load.image('player_shutdown','img/nave_shutdown.png');
+
+        //enemigos
+        this.load.image('alien','img/alien.png');
+        this.load.image('alien_follow','img/alien_follow.png');
+
+        //objetos
+        this.load.image('bullet', 'img/bullets.png');
+        this.load.image('door', 'img/LockedDoor.png');
+        this.load.image('key', 'img/key3.png');
+
+        //efectos
+        this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
+        this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
+
+        //mapas
+        // this.load.image('background','img/utiles/space.png');
+        this.load.image('stage1','img/etapa1.png');
+        this.load.tilemapTiledJSON('map', 'img/etapa1.json');
+        this.load.image('walls', 'img/walls.png');
+    },
+
+    create: function () {
+        createScene(this, etapa1, 'scene2');
+        etapa1(this);
+    },
+
+    update: function (time, delta) {
+        updateScene(this);
+    }
+});
+
+
+var Scene2 = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function Scene2 ()
+    {
+        Phaser.Scene.call(this, { key: 'scene2' });
+    },
+
+    preload: function () {
+        //player
+        this.load.image('player','img/nave.png');
+        this.load.image('player_turbo','img/nave_turbo.png');
+        this.load.image('player_shutdown','img/nave_shutdown.png');
+
+        //enemigos
+        this.load.image('alien','img/alien.png');
+        this.load.image('alien_follow','img/alien_follow.png');
+
+        //objetos
+        this.load.image('bullet', 'img/bullets.png');
+        this.load.image('door', 'img/LockedDoor.png');
+        this.load.image('key', 'img/key3.png');
+
+        //efectos
+        this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
+        this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
+
+        //mapas
+        this.load.image('stage2','img/space2.png');
+        this.load.tilemapTiledJSON('map2', 'img/etapa2.json');
+        this.load.image('walls2', 'img/walls2.png');
+    },
+
+    create: function () {
+        createScene(this, etapa2, 'endScene');
+        createScene(this, etapa2, 'endScene');
+        etapa2(this);
+    },
+
+    update: function (time, delta) {
+        updateScene(this);
+    }
+});
+
+var Scene3 = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function Scene3 ()
+    {
+        Phaser.Scene.call(this, { key: 'scene3' });
+    },
+
+    preload: function () {
+        //player
+        this.load.image('player','img/nave.png');
+        this.load.image('player_turbo','img/nave_turbo.png');
+        this.load.image('player_shutdown','img/nave_shutdown.png');
+
+        //enemigos
+        this.load.image('alien','img/alien.png');
+        this.load.image('alien_follow','img/alien_follow.png');
+
+        //objetos
+        this.load.image('bullet', 'img/bullets.png');
+        this.load.image('door', 'img/LockedDoor.png');
+        this.load.image('key', 'img/key3.png');
+
+        //efectos
+        this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
+        this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
+
+
+
+        //////////////////////////////////////////////////
+        ///             Falta crear el mapa            ///
+        //////////////////////////////////////////////////
+        //mapas
+        // this.load.image('stage3','img/space3.png');
+        // this.load.tilemapTiledJSON('map3', 'img/etapa3.json');
+        // this.load.image('walls3', 'img/walls3.png');
+    },
+
+    create: function () {
+        createScene(this, etapa3, 'endScene');
+        //////////////////////////////////////////////////
+        ///            Falta crear 'etapa3'            ///
+        //////////////////////////////////////////////////
+        etapa3(this);
+    },
+
+    update: function (time, delta) {
+        updateScene(this);
+    }
+
+});
+
+
+var endScene = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function endScene ()
+    {
+        Phaser.Scene.call(this, { key: 'endScene' });
+    },
+
+    create: function () {
+        document.getElementById("myProgress").remove()
+        document.getElementById("score").innerHTML = 'Felicitaciones! has terminado<br>la demo de Space Running<br><br>Tu puntaje final fue:<br>'+score+'(aqui hacer un boton de volver a jugar)'
+        document.getElementById("score").style.top = '200px'
+        document.getElementById("score").style.textAlign = 'center'
+    }
+
+});
+
+
+var config = {
+    type: Phaser.WEBGL,
+    width: 800,
+    height: 600,
+    scene: [Scene1, Scene2, Scene3, endScene],
+    physics: {
+        default: 'matter',
+        matter: {
+            gravity: {
+                scale: 0
+            }
+        }
+    }
+};
+
 var game = new Phaser.Game(config);
-
-
-
-function preload() {
-    //player
-    this.load.image('player','img/nave.png');
-    this.load.image('player_turbo','img/nave_turbo.png');
-    this.load.image('player_shutdown','img/nave_shutdown.png');
-
-    //enemigos
-    this.load.image('alien','img/alien.png');
-    this.load.image('alien_follow','img/alien_follow.png');
-
-    //objetos
-    this.load.image('bullet', 'img/bullets.png');
-    this.load.image('door', 'img/LockedDoor.png');
-    this.load.image('key', 'img/key3.png');
-
-    //efectos
-    this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
-    this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
-
-    //mapas
-    // this.load.image('background','img/space2.png');
-    this.load.image('stage1','img/etapa1.png');
-    this.load.tilemapTiledJSON('map', 'img/etapa1.json');
-    this.load.image('walls', 'img/walls.png');
-
-}
-
-
-
-
-
-
-
-
-function create() {
-    // Categorias de colisiones
-    walls = 1;
-    alies = this.matter.world.nextCategory();
-    obstacles = this.matter.world.nextCategory();
-    bullets = this.matter.world.nextCategory();
-    keys = this.matter.world.nextCategory();
-    doors = this.matter.world.nextCategory();
-    portals = this.matter.world.nextCategory();
-
-    collisionTokens = {
-        "alies": [walls, obstacles, keys, doors, portals],
-        "obstacles": [walls, alies, obstacles, bullets],
-        "bullets": [walls, obstacles, doors],
-        "keys": [walls, alies],
-        "doors": [alies, bullets],
-        "portals": [alies]
-    }
-
-    this.matter.world.createDebugGraphic();
-    this.matter.world.drawDebug = false;
-
-    this.anims.create({
-        key: 'explode',
-        frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 11 }),
-        frameRate: 16,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'portal',
-        frames: this.anims.generateFrameNumbers('portal', { start: 0, end: 4 }),
-        frameRate: 16,
-        repeat: -1
-    });
-
-    this.cameras.main.setSize(800, 600);
-    this.cameras.add(450, 250, 350, 350, false, 'mini_map')
-    this.cameras.cameras[1].zoom = 0.1
-    // this.cameras.add(0, 0, 500, 500, false, 'mini_map').centerToSize()
-    // this.cameras.cameras[1].zoom = 0.15
-
-    this_stage = stages.splice(0, 1)[0];
-    this_stage(this);
-
-
-    this.cameras.main.startFollow(player);
-
-
-    // esto se uso para sacar el fondo de la imagen con el mapa
-    // NOTA: antes se debio comentar las camaras, la funcinon "etapa1(this)" y el "update" de la configuracion
-    // this.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
-    // var map = this.make.tilemap({ key: 'map' });
-    // var tileset = map.addTilesetImage('walls');
-    // var layer = map.createDynamicLayer(0, tileset, 0, 0);
-
-
-
-    this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
-
-        var Acategory = bodyA.collisionFilter.category
-        var Bcategory = bodyB.collisionFilter.category
-        //Colision de alien con balas
-        if ((Acategory == bullets && Bcategory == obstacles) || (Bcategory == bullets && Acategory == obstacles)) {
-            if (Acategory == obstacles){
-                var obstacle = bodyA;
-                var bullet = bodyB;
-            }
-            else{
-                var bullet = bodyA;
-                var obstacle = bodyB;
-            }
-
-            bullet.gameObject.destroy()
-            obstacleDestroy(this.scene, obstacle, spawn_points, stage_obstacles)
-        }
-
-        //Colision de alien con personaje
-        else if ((Acategory == alies && Bcategory == obstacles) || (Bcategory == alies && Acategory == obstacles)) {
-            playerDestroy(this.scene, player, stage_obstacles)
-        }
-
-        //Colision de personaje con llaves
-        if ((Acategory == alies && Bcategory == keys) || (Bcategory == alies && Acategory == keys)) {
-            var key = Acategory == keys ?  bodyA : bodyB;
-
-            for (var i = 0; i < stage_doors.length; i++) {
-                if (stage_doors[i].color == key.gameObject.color){
-                    stage_doors[i].destroy();
-                }
-            }
-            key.gameObject.destroy()
-        }
-
-        //Colision de personaje con portal
-        if ((Acategory == alies && Bcategory == portals) || (Bcategory == alies && Acategory == portals)) {
-            nextStage(this.scene)
-        }
-
-    });
-
-
-
-    cursors = this.input.keyboard.createCursorKeys();
-
-
-}
-
-
-
-
-
-
-
-
-
-
-function update(time, delta) {
-
-    if (cursors.up.isDown) {
-        increaseVelTo(player, max_speed)
-        player.setTexture('player_turbo')
-   		player.setBounce(0.6);
-    }
-    else if (cursors.down.isDown) {
-        reduceVelTo(player, slow_speed)
-        player.setTexture('player_shutdown')
-
-    }
-    else {
-        player.setTexture('player')
-   		player.setBounce(1.1);
-        if (player.body.speed <= regular_speed) {
-            increaseVelTo(player, regular_speed);
-        }
-        else{
-            reduceVelTo(player, regular_speed);
-        }
-    }
-
-
-    if (cursors.left.isDown) {
-        player.setAngularVelocity(-0.075)
-        if (cursors.up.isUp && cursors.down.isUp) {
-            reduceVelTo(player, regular_speed)
-        }
-    }
-    else if (cursors.right.isDown) {
-    	player.setAngularVelocity(0.075)
-        if (cursors.up.isUp && cursors.down.isUp) {
-            reduceVelTo(player, regular_speed)
-        }
-    }
-    else {
-    	player.setAngularVelocity(0)
-    }
-
-    // if (cursors.space.isDown && time > lastFired)
-    if (cursors.space.isDown && canShot) {
-        canShot = false;
-        createBullet(this, player)
-
-        setTimeout(function(){
-            canShot = true;
-        }, 150);
-
-    }
-
-    // Esto sirve para ver las lineas de colision al hacer click
-    // this.input.on('pointerdown', function () {
-    //     this.matter.world.drawDebug = !this.matter.world.drawDebug;
-    //     this.matter.world.debugGraphic.visible = this.matter.world.drawDebug;
-    // }, this);
-}
-
-
-
 
 
 function etapa1(dis, includingMap=true){
     if (includingMap){
-        stageBG = dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
+        // dis.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
+        dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
         
-        map = dis.make.tilemap({ key: 'map' });
-        tileset = map.addTilesetImage('walls');
-        layer = map.createDynamicLayer(0, tileset, 0, 0);
+        var map = dis.make.tilemap({ key: 'map' });
+        var tileset = map.addTilesetImage('walls');
+        var layer = map.createDynamicLayer(0, tileset, 0, 0);
 
         map.setCollisionByProperty({ collides: true });
 
@@ -336,6 +281,13 @@ function etapa1(dis, includingMap=true){
         isPaused = false;
 
         enemiesText = dis.add.text(400, 210, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
+
+        dis.cameras.main.setSize(800, 600);
+        dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        dis.cameras.cameras[1].zoom = 0.1
+
+        dis.cameras.main.startFollow(player);
+
     }
 
     stage_obstacles = []
@@ -351,5 +303,72 @@ function etapa1(dis, includingMap=true){
 
 
 function etapa2(dis, includingMap=true){
+    if (includingMap){
 
+        dis.add.tileSprite(0, 0, 2368, 1600, 'stage2').setOrigin(0);
+        
+        var map = dis.make.tilemap({ key: 'map2' });
+        var tileset = map.addTilesetImage('walls2');
+        var layer = map.createDynamicLayer(0, tileset, 0, 0);
+        map.setCollisionByProperty({ collides: true });
+        dis.matter.world.convertTilemapLayer(layer);
+
+        layer.forEachTile(function (tile) {
+            if (tile.properties.obstacles){
+                tile.physics.matterBody.body.label = 'espinas';
+            }
+        });
+
+        dis.matter.world.setBounds(1, 1, 2368, 1600);
+
+        player_spawn = [4.5*64, 12.5*64]
+        createPlayer(dis);
+
+        spawn_points = [[30.5*64,6.5*64], [18.5*64,8.5*64], [18.5*64,12.5*64], [24.5*64,18.5*64], [12.5*64,18.5*64], [24.5*64,6.5*64], [30.5*64, 17.5*64], [30.5*64, 19.5*64]];
+
+        var maxTime = 180;
+        startTimeBar(maxTime); //barra de tiempo en segundos
+        changeScore(maxTime*10)
+
+        stage_doors = []
+        stage_doors.push(createDoor(dis, [10.5*64, 19*64], "rojo", 0, 1, 2))
+        stage_doors.push(createDoor(dis, [18.5*64, 10.5*64], "amarillo", 0, 3, 1))
+        stage_doors.push(createDoor(dis, [30*64, 14.5*64], "azul", 0, 2, 1))
+        stage_doors.push(createDoor(dis, [5*64, 10.5*64], "verde", 0, 2, 1))
+        stage_doors.push(createDoor(dis, [22.5*64, 19*64], "rosado", 0, 1, 2))
+        stage_doors.push(createDoor(dis, [30*64, 10.5*64], "celeste", 0, 2, 1))
+        stage_doors.push(createDoor(dis, [18.5*64, 6.5*64], "naranjo", 0, 3, 1))
+
+        createKey(dis, [24.5*64, 20.5*64], "rojo")
+        createKey(dis, [5*64, 20*64], "amarillo")
+        createKey(dis, [17*64, 8*64], "azul")
+        createKey(dis, [30.5*64, 21*64], "verde")
+        createKey(dis, [12*64, 4*64], "rosado")
+        createKey(dis, [15.5*64, 20.5*64], "celeste")
+        createKey(dis, [30.5*64, 6.5*64], "naranjo")
+
+        createPortal(dis, [18.5*64, 4.5*64])
+
+        num_enemies = spawn_points.length;
+        changeScore(100*num_enemies)
+
+        enemiesText = dis.add.text(7.5*64, 10.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
+        
+        isPaused = false;
+
+        dis.cameras.main.setSize(800, 600);
+        dis.cameras.add(350, 250, 450, 350, false, 'mini_map')
+        dis.cameras.cameras[1].zoom = 0.11
+
+        dis.cameras.main.startFollow(player);
+    }
+
+    stage_obstacles = []
+    for (var i = 0; i < num_enemies; i++) {
+        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+        stage_obstacles.push(createAlien(dis, pos));
+    }
+
+    enemiesText.setText('Nº enemigos: '+num_enemies);
+    return stage_obstacles
 }

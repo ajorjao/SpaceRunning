@@ -16,10 +16,13 @@ function createPlayer(dis){
 }
 
 
-function playerDestroy(dis, player, stage_obstacles){
+function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
-    num_enemies-=1;
+    if (num_enemies>0 && this_life_score>=30){
+        num_enemies-=1;
+    }
+    this_life_score = 0;
     dis.cameras.main.shake(250, 0.01);
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
@@ -44,7 +47,6 @@ function playerDestroy(dis, player, stage_obstacles){
 
         }, 2000);
     }, 1000);
-
 }
 
 function createAlien(dis, pos){
@@ -162,59 +164,43 @@ function createPortal(dis, pos){
 }
 
 
-function nextStage(dis){
-    console.log("Aqui se deberá cambiar el mapa")
+function nextStage(dis, nextScene){
 
     dis.matter.pause();
     isPaused = true;
-    num_enemies+=1;
-    // dis.cameras.main.shake(250, 0.01);
+    timeProgress = 0;
+
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
-    // changeScore()
-
 
     setTimeout(function() {
-        for (var i = 0; i < stage_obstacles.length; i++) {
-            stage_obstacles[i].destroy()
-        }
-
-        this_stage = stages.splice(0, 1)[0];
-        this_stage(this);
-
-        player.x = player_spawn[0]
-        player.y = player_spawn[1]
-        player.angle = 0
-
-        dis.cameras.main.fadeIn(1000);
-        dis.cameras.cameras[1].fadeIn(1000);
-
-        setTimeout(function() {
-            dis.matter.resume();
-            isPaused = false;
-
-        }, 2000);
+        dis.scene.start(nextScene);
     }, 1000);
+
 }
 
 
 
 function changeScore(changed) {
     score += changed;
+    if (changed>0){
+        this_life_score += changed;
+    }
     document.getElementById("score").innerHTML = 'Score: '+ score
 }
 
 
 function startTimeBar(maxTime) {
-    var timeProgress = maxTime;
+    timeProgress = maxTime;
     var elem = document.getElementById("myBar");
+    elem.style.width = 100+'%';
     elem.innerHTML = maxTime + ' seg'
     var id = setInterval(frame, 1000);
     function frame() {
         if (timeProgress <= 0) {
             clearInterval(id);
             elem.innerHTML = '';
-            document.getElementById("myProgress").innerHTML = "Tiempo acabado"
+            document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Tiempo acabado'
         } else {
             if (!isPaused){
                 timeProgress--;
@@ -228,7 +214,6 @@ function startTimeBar(maxTime) {
 
 
 function startIA(obstacle){
-// function startIA(obstacle, dis){
     var movements = {0: setRandomDirection, 1: setOppositePlayerDirection, 2: setToPlayerDirection}
 
     if (obstacle.texture.key == "alien_follow"){
@@ -240,12 +225,11 @@ function startIA(obstacle){
 
     setTimeout(function() {
         if(obstacle.active){
-            if (Phaser.Math.Between(0, 2) < 2 || obstacle.body.speed<3){ // 2/3 (66.6%) de que se mueva
+            if (Phaser.Math.Between(0, 2) < 2 || obstacle.body.speed<3){
                 distance = Phaser.Math.Distance.Between(obstacle.body.position.x, obstacle.body.position.y, player.body.position.x, player.body.position.y)
                 if (distance < 500){
                     obstacle.setTexture('alien_follow');
                     movements[2](obstacle, 4, distance);
-                    // movements[2](obstacle, 4, distance, dis);
                 }
                 else{
                     obstacle.setTexture('alien');
@@ -253,7 +237,6 @@ function startIA(obstacle){
                 }
             }
             startIA(obstacle);
-            // startIA(obstacle, dis);
         }
     }, nextMovement*1000);
 }
@@ -342,4 +325,151 @@ function setOppositePlayerDirection(object, velocity){
     var newVelX = Math.cos(angle)*velocity
     var newVelY = Math.sin(angle)*velocity
     object.setVelocity(newVelX, newVelY)
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////// 
+//                      Creacion de escenarios                         //
+///////////////////////////////////////////////////////////////////////// 
+function createScene(dis, this_stage, nextScene){
+    // Categorias de colisiones
+    walls = 1;
+    alies = dis.matter.world.nextCategory();
+    obstacles = dis.matter.world.nextCategory();
+    bullets = dis.matter.world.nextCategory();
+    keys = dis.matter.world.nextCategory();
+    doors = dis.matter.world.nextCategory();
+    portals = dis.matter.world.nextCategory();
+
+    collisionTokens = {
+        "alies": [walls, obstacles, keys, doors, portals],
+        "obstacles": [walls, alies, obstacles, bullets],
+        "bullets": [walls, obstacles, doors],
+        "keys": [walls, alies],
+        "doors": [alies, bullets],
+        "portals": [alies]
+    }
+
+    dis.matter.world.createDebugGraphic();
+    dis.matter.world.drawDebug = false;
+
+    dis.anims.create({
+        key: 'explode',
+        frames: dis.anims.generateFrameNumbers('explosion', { start: 0, end: 11 }),
+        frameRate: 12,
+        repeat: -1
+    });
+
+    dis.anims.create({
+        key: 'portal',
+        frames: dis.anims.generateFrameNumbers('portal', { start: 0, end: 4 }),
+        frameRate: 16,
+        repeat: -1
+    });
+
+
+    //Manejo de colisiones
+    dis.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+
+        var Acategory = bodyA.collisionFilter.category
+        var Bcategory = bodyB.collisionFilter.category
+
+        //Colision de alien con balas
+        if ((Acategory == bullets && Bcategory == obstacles) || (Bcategory == bullets && Acategory == obstacles)) {
+            if (Acategory == obstacles){
+                var obstacle = bodyA;
+                var bullet = bodyB;
+            }
+            else{
+                var bullet = bodyA;
+                var obstacle = bodyB;
+            }
+
+            bullet.gameObject.destroy()
+            obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles)
+        }
+
+        //Colision de alien con personaje
+        else if ((Acategory == alies && Bcategory == obstacles) || (Bcategory == alies && Acategory == obstacles) || (bodyA.parent.label == 'espinas' && Bcategory == alies) || (bodyB.parent.label == 'espinas' && Acategory == alies)) {
+            playerDestroy(dis, player, stage_obstacles, this_stage)
+        }
+
+        //Colision de personaje con llaves
+        if ((Acategory == alies && Bcategory == keys) || (Bcategory == alies && Acategory == keys)) {
+            var key = Acategory == keys ?  bodyA : bodyB;
+
+            for (var i = 0; i < stage_doors.length; i++) {
+                if (stage_doors[i].color == key.gameObject.color){
+                    stage_doors[i].destroy();
+                }
+            }
+            key.gameObject.destroy()
+        }
+
+        //Colision de personaje con portal
+        if ((Acategory == alies && Bcategory == portals) || (Bcategory == alies && Acategory == portals)) {
+            nextStage(dis, nextScene)
+        }
+
+    });
+
+    cursors = dis.input.keyboard.createCursorKeys();
+}
+
+function updateScene(dis){
+    if (cursors.up.isDown) {
+        increaseVelTo(player, max_speed)
+        player.setTexture('player_turbo')
+        player.setBounce(0.6);
+    }
+    else if (cursors.down.isDown) {
+        reduceVelTo(player, slow_speed)
+        player.setTexture('player_shutdown')
+
+    }
+    else {
+        player.setTexture('player')
+        player.setBounce(1.1);
+        if (player.body.speed <= regular_speed) {
+            increaseVelTo(player, regular_speed);
+        }
+        else{
+            reduceVelTo(player, regular_speed);
+        }
+    }
+
+
+    if (cursors.left.isDown) {
+        player.setAngularVelocity(-0.075)
+        if (cursors.up.isUp && cursors.down.isUp) {
+            reduceVelTo(player, regular_speed)
+        }
+    }
+    else if (cursors.right.isDown) {
+        player.setAngularVelocity(0.075)
+        if (cursors.up.isUp && cursors.down.isUp) {
+            reduceVelTo(player, regular_speed)
+        }
+    }
+    else {
+        player.setAngularVelocity(0)
+    }
+
+    if (cursors.space.isDown && canShot) {
+        canShot = false;
+        createBullet(dis, player)
+
+        setTimeout(function(){
+            canShot = true;
+        }, 150);
+
+    }
+
+    // Esto sirve para ver las lineas de colision al hacer click
+    // dis.input.on('pointerdown', function () {
+    //     dis.matter.world.drawDebug = !dis.matter.world.drawDebug;
+    //     dis.matter.world.debugGraphic.visible = dis.matter.world.drawDebug;
+    // }, dis);
 }

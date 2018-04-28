@@ -126,8 +126,7 @@ var Scene2 = new Phaser.Class({
     },
 
     create: function () {
-        createScene(this, etapa2, 'endScene');
-        createScene(this, etapa2, 'endScene');
+        createScene(this, etapa2, 'scene3');
         etapa2(this);
     },
 
@@ -172,16 +171,13 @@ var Scene3 = new Phaser.Class({
         ///             Falta crear el mapa            ///
         //////////////////////////////////////////////////
         //mapas
-        // this.load.image('stage3','img/space3.png');
-        // this.load.tilemapTiledJSON('map3', 'img/etapa3.json');
-        // this.load.image('walls3', 'img/walls3.png');
+        this.load.image('stage3','img/space.png');
+        this.load.tilemapTiledJSON('map3', 'img/etapa3.json');
+        this.load.image('walls2', 'img/walls2.png');
     },
 
     create: function () {
         createScene(this, etapa3, 'endScene');
-        //////////////////////////////////////////////////
-        ///            Falta crear 'etapa3'            ///
-        //////////////////////////////////////////////////
         etapa3(this);
     },
 
@@ -217,7 +213,7 @@ var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [Scene1, Scene2, Scene3, endScene],
+    scene: [Scene3,Scene1, Scene2, endScene],
     physics: {
         default: 'matter',
         matter: {
@@ -366,6 +362,77 @@ function etapa2(dis, includingMap=true){
     stage_obstacles = []
     for (var i = 0; i < num_enemies; i++) {
         var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
+        stage_obstacles.push(createAlien(dis, pos));
+    }
+
+    enemiesText.setText('Nº enemigos: '+num_enemies);
+    return stage_obstacles
+}
+
+function etapa3(dis, includingMap=true){
+    if (includingMap){
+
+        dis.add.tileSprite(0, 0, 3600, 1500, 'stage3').setOrigin(0);
+        
+        var map = dis.make.tilemap({ key: 'map3' });
+        var tileset = map.addTilesetImage('walls2');
+        var layer = map.createDynamicLayer(0, tileset, 0, 0);
+        map.setCollisionByProperty({ collides: true });
+        dis.matter.world.convertTilemapLayer(layer);
+
+        layer.forEachTile(function (tile) {
+            if (tile.properties.obstacles){
+                tile.physics.matterBody.body.label = 'espinas';
+            }
+        });
+
+        dis.matter.world.setBounds(1, 1, 3600, 1500);
+
+        player_spawn = [3.5*64, 11.5*64]
+        createPlayer(dis);
+
+        spawn_points = [[5.5*64,19.5*64], [16.5*64,7.5*64], [23.5*64,3.5*64], [34.5*64,18.5*64], [40.5*64,15.5*64], [45.5*64,11.5*64], [52.5*64, 4.5*64], [56.5*64, 17.5*64]];
+
+        var maxTime = 180;
+        startTimeBar(maxTime); //barra de tiempo en segundos
+        changeScore(maxTime*10)
+
+        stage_doors = []
+        stage_doors.push(createDoor(dis, [6*64, 6.5*64], "rojo", 0, 2, 1))
+        stage_doors.push(createDoor(dis, [20.5*64, 4.5*64], "amarillo", 0, 1, 3))
+        stage_doors.push(createDoor(dis, [41.5*64, 12.5*64], "azul", 0, 1, 3))
+        stage_doors.push(createDoor(dis, [48.5*64, 4*64], "verde", 0, 1, 2))
+        stage_doors.push(createDoor(dis, [4*64, 10.5*64], "rosado", 0, 2, 1))
+        stage_doors.push(createDoor(dis, [35.5*64, 6.5*64], "celeste", 0, 3, 1))
+        stage_doors.push(createDoor(dis, [17.5*64, 8*64], "naranjo", 0, 1, 2))
+
+        createKey(dis, [53.5*64, 19.5*64], "rojo")
+        createKey(dis, [44*64, 5*64], "amarillo")
+        createKey(dis, [7*64, 7.5*64], "azul")
+        createKey(dis, [9.75*64, 4.5*64], "verde")
+        createKey(dis, [33*64, 3.5*64], "rosado")
+        createKey(dis, [22.5*64, 16.5*64], "celeste")
+        createKey(dis, [10.5*64, 12.5*64], "naranjo")
+
+        createPortal(dis, [7.5*64, 3.5*64])
+
+        num_enemies = spawn_points.length;
+        changeScore(100*num_enemies)
+
+        enemiesText = dis.add.text(5.25*64, 10.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
+        
+        isPaused = false;
+
+        dis.cameras.main.setSize(800, 600);
+        dis.cameras.add(350, 250, 450, 350, false, 'mini_map')
+        dis.cameras.cameras[1].zoom = 0.11
+
+        dis.cameras.main.startFollow(player);
+    }
+    stage_obstacles = []
+    for (var i = 0; i < num_enemies; i++) {
+        //no se considera el ultimo spawn point al iniciar la etapa ya que está muy cerca del personaje
+        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-2)];
         stage_obstacles.push(createAlien(dis, pos));
     }
 

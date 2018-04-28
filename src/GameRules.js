@@ -196,32 +196,48 @@ var endScene = new Phaser.Class({
         Phaser.Scene.call(this, { key: 'endScene' });
     },
 
+    
     create: function () {
-        //tiempo de juego
-        var endTime = new Date();
-        var diff =(endTime - startTime) / 1000;
-        diff /= 60;
-        // console.log(Math.abs(Math.round(diff)));
-        document.getElementById("myProgress").remove()
-        document.getElementById("score").innerHTML = '\
-            Felicitaciones! has terminado<br>\
-            la demo de Space Running<br><br>\
-            Tu puntaje final fue:<br>\
-            '+score+'<br><br>\
-            Has muerto: '+deaths+' veces<br>\
-            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>(aqui hacer un boton de volver a jugar)'
-        document.getElementById("score").style.top = '100px'
-        document.getElementById("score").style.textAlign = 'center'
+        createScene(this, end, 'menuScene');
+        end(this);
+    },
+    update: function(time, delta){
+        updateEnd(this);
+        
     }
+
+    
 
 });
 
+var menuScene = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function menuScene ()
+    {
+        Phaser.Scene.call(this, { key: 'menuScene' });
+    },
+
+    
+    create: function () {
+        createScene(this, menu, 'scene1');
+        menu(this);
+    },
+    update: function(time, delta){
+        updateMenu(this);        
+    } 
+
+
+});
 
 var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [Scene1, Scene2, Scene3, endScene],
+    scene: [menuScene,Scene1, Scene2, Scene3,endScene],
     physics: {
         default: 'matter',
         matter: {
@@ -447,4 +463,28 @@ function etapa3(dis, includingMap=true){
 
     enemiesText.setText('Nº enemigos: '+num_enemies);
     return stage_obstacles
+}
+function menu(dis){
+    document.getElementById("score").innerHTML = ''
+    document.getElementById("myProgress").style.visibility = "hidden";
+    dis.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
+    dis.add.text(200, 300, 'Apreta abajo para empezar', { fontSize: '32px', fill: '#fff' });
+
+}
+function end(dis){
+    //tiempo de juego
+        var endTime = new Date();
+        var diff =(endTime - startTime) / 1000;
+        diff /= 60;
+        // console.log(Math.abs(Math.round(diff)));
+        document.getElementById("myProgress").style.visibility = "hidden";
+        document.getElementById("score").innerHTML = '\
+            Felicitaciones! has terminado<br>\
+            la demo de Space Running<br><br>\
+            Tu puntaje final fue:<br>\
+            '+score+'<br><br>\
+            Has muerto: '+deaths+' veces<br>\
+            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver al menu'
+        document.getElementById("score").style.top = '100px'
+        document.getElementById("score").style.textAlign = 'center'
 }

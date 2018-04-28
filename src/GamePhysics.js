@@ -409,6 +409,20 @@ function createScene(dis, this_stage, nextScene){
     cursors = dis.input.keyboard.createCursorKeys();
 }
 
+function updateEnd(dis){
+    if(cursors.up.isDown){         
+        dis.scene.start('menuScene');
+    }
+            
+    }
+function updateMenu(dis){
+    if(cursors.down.isDown){
+        document.getElementById("myProgress").style.visibility = "visible";
+        dis.scene.start('scene1');
+
+        }
+}
+
 function updateScene(dis){
     if (cursors.up.isDown) {
         increaseVelTo(player, max_speed)
@@ -457,6 +471,7 @@ function updateScene(dis){
         }, 150);
 
     }
+    
 
     // Esto sirve para ver las lineas de colision al hacer click
     // dis.input.on('pointerdown', function () {

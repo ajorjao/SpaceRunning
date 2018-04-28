@@ -19,6 +19,7 @@ function createPlayer(dis){
 function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
+    deaths += 1;
     if (num_enemies>0 && this_life_score>=30){
         num_enemies-=1;
     }
@@ -302,18 +303,8 @@ function setRandomDirection(object, velocity){
 }
 
 function setToPlayerDirection(object, velocity, distance){
-// function setToPlayerDirection(object, velocity, distance, dis){
     var futuroPlayerX = Math.cos(Phaser.Math.DegToRad(player.angle))*distance
     var futuroPlayerY = Math.sin(Phaser.Math.DegToRad(player.angle))*distance
-
-    // var explosion = dis.matter.add.sprite(player.body.position.x+futuroPlayerX, player.body.position.y+futuroPlayerY, 'explosion');
-    // explosion.anims.play('explode', true);
-    // explosion.setCollidesWith([]);
-
-    // setTimeout(function() {
-    //     explosion.destroy()
-    // }, 1000)
-
     var angle = Phaser.Math.Angle.Between(object.body.position.x, object.body.position.y, player.body.position.x+futuroPlayerX, player.body.position.y+futuroPlayerY)
     var newVelX = Math.cos(angle)*velocity
     var newVelY = Math.sin(angle)*velocity

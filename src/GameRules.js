@@ -21,6 +21,8 @@ var spawn_points;
 
 //global variables
 var player;
+var startTime = new Date();
+var deaths = 0;
 var score = 0;
 var this_life_score = 0;
 var num_enemies;
@@ -165,13 +167,8 @@ var Scene3 = new Phaser.Class({
         this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
         this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
 
-
-
-        //////////////////////////////////////////////////
-        ///             Falta crear el mapa            ///
-        //////////////////////////////////////////////////
         //mapas
-        this.load.image('stage3','img/space.png');
+        this.load.image('stage3','img/space3.png');
         this.load.tilemapTiledJSON('map3', 'img/etapa3.json');
         this.load.image('walls2', 'img/walls2.png');
     },
@@ -200,9 +197,20 @@ var endScene = new Phaser.Class({
     },
 
     create: function () {
+        //tiempo de juego
+        var endTime = new Date();
+        var diff =(endTime - startTime) / 1000;
+        diff /= 60;
+        // console.log(Math.abs(Math.round(diff)));
         document.getElementById("myProgress").remove()
-        document.getElementById("score").innerHTML = 'Felicitaciones! has terminado<br>la demo de Space Running<br><br>Tu puntaje final fue:<br>'+score+'(aqui hacer un boton de volver a jugar)'
-        document.getElementById("score").style.top = '200px'
+        document.getElementById("score").innerHTML = '\
+            Felicitaciones! has terminado<br>\
+            la demo de Space Running<br><br>\
+            Tu puntaje final fue:<br>\
+            '+score+'<br><br>\
+            Has muerto: '+deaths+' veces<br>\
+            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>(aqui hacer un boton de volver a jugar)'
+        document.getElementById("score").style.top = '100px'
         document.getElementById("score").style.textAlign = 'center'
     }
 
@@ -213,7 +221,7 @@ var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [Scene3,Scene1, Scene2, endScene],
+    scene: [Scene1, Scene2, Scene3, endScene],
     physics: {
         default: 'matter',
         matter: {
@@ -322,7 +330,7 @@ function etapa2(dis, includingMap=true){
 
         spawn_points = [[30.5*64,6.5*64], [18.5*64,8.5*64], [18.5*64,12.5*64], [24.5*64,18.5*64], [12.5*64,18.5*64], [24.5*64,6.5*64], [30.5*64, 17.5*64], [30.5*64, 19.5*64]];
 
-        var maxTime = 180;
+        var maxTime = 300;
         startTimeBar(maxTime); //barra de tiempo en segundos
         changeScore(maxTime*10)
 
@@ -369,6 +377,7 @@ function etapa2(dis, includingMap=true){
     return stage_obstacles
 }
 
+
 function etapa3(dis, includingMap=true){
     if (includingMap){
 
@@ -393,7 +402,7 @@ function etapa3(dis, includingMap=true){
 
         spawn_points = [[5.5*64,19.5*64], [16.5*64,7.5*64], [23.5*64,3.5*64], [34.5*64,18.5*64], [40.5*64,15.5*64], [45.5*64,11.5*64], [52.5*64, 4.5*64], [56.5*64, 17.5*64]];
 
-        var maxTime = 180;
+        var maxTime = 420;
         startTimeBar(maxTime); //barra de tiempo en segundos
         changeScore(maxTime*10)
 
@@ -424,7 +433,7 @@ function etapa3(dis, includingMap=true){
         isPaused = false;
 
         dis.cameras.main.setSize(800, 600);
-        dis.cameras.add(350, 250, 450, 350, false, 'mini_map')
+        dis.cameras.add(0, 270, 850, 350, false, 'mini_map')
         dis.cameras.cameras[1].zoom = 0.11
 
         dis.cameras.main.startFollow(player);

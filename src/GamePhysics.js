@@ -413,14 +413,6 @@ function updateEnd(dis){
     if(cursors.up.isDown){         
         dis.scene.start('menuScene');
     }
-            
-    }
-function updateMenu(dis){
-    if(cursors.down.isDown){
-        document.getElementById("myProgress").style.visibility = "visible";
-        dis.scene.start('scene1');
-
-        }
 }
 
 function updateScene(dis){

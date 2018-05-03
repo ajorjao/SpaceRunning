@@ -270,7 +270,7 @@ function acelerationFromAngle(player, aceleration, permited=regular_speed){
     }
 }
 
-function reduceVelTo(player, permited, brakePower=0.5){
+function reduceVelTo(player, permited, brakePower=0.1){
     if (player.body.speed >= permited) {
         // acelerationFromAngle(player, -brakePower);
         var newVelX;

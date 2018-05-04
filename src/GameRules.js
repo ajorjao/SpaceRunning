@@ -174,7 +174,7 @@ var Scene3 = new Phaser.Class({
     },
 
     create: function () {
-        createScene(this, etapa3, 'endScene');
+        createScene(this, etapa3, 'scene4');
         etapa3(this);
     },
 
@@ -184,6 +184,52 @@ var Scene3 = new Phaser.Class({
 
 });
 
+var Scene4 = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function Scene4 ()
+    {
+        Phaser.Scene.call(this, { key: 'scene4' });
+    },
+
+    preload: function () {
+        //player
+        this.load.image('player','img/nave.png');
+        this.load.image('player_turbo','img/nave_turbo.png');
+        this.load.image('player_shutdown','img/nave_shutdown.png');
+
+        //enemigos
+        this.load.image('alien','img/alien.png');
+        this.load.image('alien_follow','img/alien_follow.png');
+
+        //objetos
+        this.load.image('bullet', 'img/bullets.png');
+        this.load.image('door', 'img/LockedDoor.png');
+        this.load.image('key', 'img/key3.png');
+
+        //efectos
+        this.load.spritesheet('explosion', 'img/Explosion.png', { frameWidth: 64, frameHeight: 64 })
+        this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
+
+        //mapas
+        this.load.image('stage4','img/space.png');
+        this.load.tilemapTiledJSON('map4', 'img/etapa4.json');
+        this.load.image('walls2', 'img/walls2.png');
+    },
+
+    create: function () {
+        createScene(this, etapa4, 'endScene');
+        etapa4(this);
+    },
+
+    update: function (time, delta) {
+        updateScene(this);
+    }
+
+});
 
 var endScene = new Phaser.Class({
 
@@ -240,9 +286,9 @@ var menuScene = new Phaser.Class({
 
 var config = {
     type: Phaser.WEBGL,
-    width: 800,
-    height: 600,
-    scene: [menuScene,Scene1, Scene2, Scene3,endScene],
+    width: 1920,
+    height: 2560,
+    scene: [Scene4,menuScene,Scene1, Scene2, Scene3,endScene],
     physics: {
         default: 'matter',
         matter: {
@@ -467,6 +513,80 @@ function etapa3(dis, includingMap=true){
     }
 
     enemiesText.setText('Nº enemigos: '+num_enemies);
+    return stage_obstacles
+}
+
+
+function etapa4(dis, includingMap=true){
+    if (includingMap){
+
+        dis.add.tileSprite(0, 0, 1920, 2560, 'stage4').setOrigin(0);
+        
+        var map = dis.make.tilemap({ key: 'map4' });
+        var tileset = map.addTilesetImage('walls2');
+        var layer = map.createDynamicLayer(0, tileset, 0, 0);
+        map.setCollisionByProperty({ collides: true });
+        dis.matter.world.convertTilemapLayer(layer);
+
+        layer.forEachTile(function (tile) {
+            if (tile.properties.obstacles){
+                tile.physics.matterBody.body.label = 'espinas';
+            }
+        });
+
+        dis.matter.world.setBounds(1, 1, 1920, 2560);
+
+        //player_spawn = [12.5*64, 16.5*64]
+        //createPlayer(dis);
+
+        //spawn_points = [[25*64,5*64], [23*64,17.5*64], [20*64,27*64], [13*64,36*64], [25*64,36*64], [8*64,8*64], [13*64, 8*64], [7*64, 26*64]];
+
+        var maxTime = 420;
+        startTimeBar(maxTime); //barra de tiempo en segundos
+        changeScore(maxTime*10)
+        document.getElementById("myProgress").style.visibility = "hidden";
+        document.getElementById("score").style.visibility = "hidden";
+
+        //stage_doors = []
+        //stage_doors.push(createDoor(dis, [21*64, 37*64], "rojo", 0, 1, 2))
+        //stage_doors.push(createDoor(dis, [14.5*64, 13*64], "amarillo", 0, 1, 2))
+        //stage_doors.push(createDoor(dis, [3*64, 30.5*64], "azul", 0, 2, 1))
+        //stage_doors.push(createDoor(dis, [3.5*64, 8.5*64], "verde", 0, 3, 1))
+        //stage_doors.push(createDoor(dis, [26.5*64, 26*64], "rosado", 0, 3, 1))
+        //stage_doors.push(createDoor(dis, [7*64, 37*64], "celeste", 0, 1, 2))
+        //stage_doors.push(createDoor(dis, [14*64, 10*64], "naranjo", 0, 1, 2))
+
+        //createKey(dis, [8.5*64, 16.5*64], "rojo")
+        //createKey(dis, [26*64, 35*64], "amarillo")
+        //createKey(dis, [12*64, 13.5*64], "azul")
+        //createKey(dis, [7.05*64, 35*64], "verde")
+        //createKey(dis, [6.75*64, 13*64], "rosado")
+        //createKey(dis, [26.5*64, 30.5*64], "celeste")
+        //createKey(dis, [4*64, 38*64], "naranjo")
+
+        //createPortal(dis, [16.5*64, 7.5*64])
+
+        //num_enemies = spawn_points.length;
+        //changeScore(100*num_enemies)
+
+        //enemiesText = dis.add.text(12.25*64, 14.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
+        
+        isPaused = false;
+
+        //dis.cameras.main.setSize(800, 600);
+        //dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        //dis.cameras.cameras[1].zoom = 0.11
+
+        //dis.cameras.main.startFollow(player);
+    }
+    stage_obstacles = []
+    for (var i = 0; i < num_enemies; i++) {
+        //no se considera el ultimo spawn point al iniciar la etapa ya que está muy cerca del personaje
+        var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-2)];
+        stage_obstacles.push(createAlien(dis, pos));
+    }
+
+    //enemiesText.setText('Nº enemigos: '+num_enemies);
     return stage_obstacles
 }
 

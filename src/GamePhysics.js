@@ -416,6 +416,7 @@ function updateEnd(dis){
 }
 
 function updateScene(dis){
+    /*
     if (cursors.up.isDown) {
         increaseVelTo(player, max_speed)
         player.setTexture('player_turbo')
@@ -470,4 +471,5 @@ function updateScene(dis){
     //     dis.matter.world.drawDebug = !dis.matter.world.drawDebug;
     //     dis.matter.world.debugGraphic.visible = dis.matter.world.drawDebug;
     // }, dis);
+*/
 }

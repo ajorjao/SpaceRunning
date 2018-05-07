@@ -36,6 +36,7 @@ function playerDestroy(dis, player, stage_obstacles, this_stage){
         player.x = player_spawn[0]
         player.y = player_spawn[1]
         player.angle = 0
+        player.setVelocity(0, 0)
 
         this_stage(dis, false);
 
@@ -76,7 +77,7 @@ function createAlien(dis, pos){
 function obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles){
     
     obstacle.gameObject.destroy();
-    changeScore(+20)
+    changeScore(+25)
     for (var i = 0; i < stage_obstacles.length; i++) {
         if (stage_obstacles[i].active == false){
             stage_obstacles.splice(i, 1);
@@ -175,9 +176,21 @@ function nextStage(dis, nextScene){
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
 
     setTimeout(function() {
+        document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Cargando...'
         dis.scene.start(nextScene);
-    }, 1000);
+    }, 1010);
 
+}
+
+function pause(dis){
+    if (isPaused){
+        isPaused = false;
+        dis.matter.resume();
+    }
+    else{
+        dis.matter.pause();
+        isPaused = true;
+    }
 }
 
 
@@ -205,9 +218,12 @@ function startTimeBar(maxTime) {
         } else {
             if (!isPaused){
                 timeProgress--;
-                changeScore(-10)
+                changeScore(-20)
                 elem.style.width = timeProgress*100/maxTime + '%';
                 elem.innerHTML = timeProgress  + 'seg';
+            }
+            else if (isPaused){
+                elem.innerHTML = timeProgress  + 'seg (Pausado)';
             }
         }
     }
@@ -360,6 +376,7 @@ function createScene(dis, this_stage, nextScene){
         repeat: -1
     });
 
+    document.getElementById("myProgress").innerHTML = '<div id="myBar"></div>'
 
     //Manejo de colisiones
     dis.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
@@ -409,17 +426,11 @@ function createScene(dis, this_stage, nextScene){
     cursors = dis.input.keyboard.createCursorKeys();
 }
 
-function updateEnd(dis){
-    if(cursors.up.isDown){         
-        dis.scene.start('menuScene');
-    }
-}
-
 function updateScene(dis){
     if (cursors.up.isDown) {
         increaseVelTo(player, max_speed)
         player.setTexture('player_turbo')
-        player.setBounce(0.6);
+        player.setBounce(0.3);
     }
     else if (cursors.down.isDown) {
         reduceVelTo(player, slow_speed)
@@ -461,7 +472,17 @@ function updateScene(dis){
         setTimeout(function(){
             canShot = true;
         }, 150);
+    }
 
+    if(cursors.shift.isDown){
+        if (canPause) {
+            canPause=false;
+            pause(dis)
+
+            setTimeout(function(){
+                canPause = true;
+            }, 2000);
+        }
     }
     
 
@@ -470,5 +491,4 @@ function updateScene(dis){
     //     dis.matter.world.drawDebug = !dis.matter.world.drawDebug;
     //     dis.matter.world.debugGraphic.visible = dis.matter.world.drawDebug;
     // }, dis);
-
 }

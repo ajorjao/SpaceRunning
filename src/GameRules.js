@@ -29,6 +29,7 @@ var num_enemies;
 var timeProgress;
 var isPaused = true;
 var canShot = true;
+var canPause = true;
 var enemiesText;
 var cursors;
 var colors = { 
@@ -81,7 +82,8 @@ var Scene1 = new Phaser.Class({
     },
 
     create: function () {
-        createScene(this, etapa1, 'scene2');
+        // createScene(this, etapa1, 'scene2');
+        createScene(this, etapa1, 'endScene');
         etapa1(this);
     },
 
@@ -244,15 +246,36 @@ var endScene = new Phaser.Class({
 
     
     create: function () {
-        createScene(this, end, 'menuScene');
-        end(this);
+        // createScene(this, end, 'menuScene');
+        // end(this);
+        var endTime = new Date();
+        var diff =(endTime - startTime) / 1000;
+        diff /= 60;
+
+        document.getElementById("myProgress").style.visibility = "hidden";
+        document.getElementById("score").innerHTML = '\
+            Felicitaciones! has terminado<br>\
+            la demo de Space Running<br><br>\
+            Tu puntaje final fue:<br>\
+            '+score+'<br><br>\
+            Has muerto: '+deaths+' veces<br>\
+            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver a jugar'
+        document.getElementById("score").style.top = '100px'
+        document.getElementById("score").style.textAlign = 'center'
+        cursors = this.input.keyboard.createCursorKeys();
     },
+
     update: function(time, delta){
-        updateEnd(this);
+        // updateEnd(this);
+        if(cursors.up.isDown){
+            startTime = new Date();
+            deaths = 0;
+            score = 0;
+            document.getElementById("score").removeAttribute("style");
+            this.scene.start('menuScene');
+        }
         
     }
-
-    
 
 });
 
@@ -271,11 +294,12 @@ var menuScene = new Phaser.Class({
         document.getElementById("score").innerHTML = ''
         document.getElementById("myProgress").style.visibility = "hidden";
         this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
-        this.add.text(200, 300, 'Apreta abajo para empezar', { fontSize: '32px', fill: '#fff' });
+        this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
         cursors = this.input.keyboard.createCursorKeys();
     },
+
     update: function(time, delta){
-        if(cursors.down.isDown){
+        if(cursors.space.isDown){
             document.getElementById("myProgress").style.visibility = "visible";
             this.scene.start('scene1');
         }
@@ -323,7 +347,7 @@ function etapa1(dis, includingMap=true){
 
         var maxTime = 180;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*10)
+        changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [11.5*64, 5*64], "rojo", 0, 1, 2))
@@ -399,7 +423,7 @@ function etapa2(dis, includingMap=true){
 
         var maxTime = 300;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*10)
+        changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [10.5*64, 19*64], "rojo", 0, 1, 2))
@@ -471,7 +495,7 @@ function etapa3(dis, includingMap=true){
 
         var maxTime = 420;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*10)
+        changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [6*64, 6.5*64], "rojo", 0, 2, 1))
@@ -541,9 +565,9 @@ function etapa4(dis, includingMap=true){
 
         spawn_points = [[25*64,5*64], [23*64,17.5*64], [20*64,27*64], [13*64,36*64], [25*64,36*64], [8*64,8*64], [13*64, 8*64], [7*64, 26*64]];
 
-        var maxTime = 420;
+        var maxTime = 600;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*10)
+        changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [21*64, 37*64], "rojo", 0, 1, 2))
@@ -586,22 +610,4 @@ function etapa4(dis, includingMap=true){
 
     enemiesText.setText('Nº enemigos: '+num_enemies);
     return stage_obstacles
-}
-
-function end(dis){
-    //tiempo de juego
-    var endTime = new Date();
-    var diff =(endTime - startTime) / 1000;
-    diff /= 60;
-
-    document.getElementById("myProgress").style.visibility = "hidden";
-    document.getElementById("score").innerHTML = '\
-        Felicitaciones! has terminado<br>\
-        la demo de Space Running<br><br>\
-        Tu puntaje final fue:<br>\
-        '+score+'<br><br>\
-        Has muerto: '+deaths+' veces<br>\
-        Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver al menu'
-    document.getElementById("score").style.top = '100px'
-    document.getElementById("score").style.textAlign = 'center'
 }

@@ -82,8 +82,7 @@ var Scene1 = new Phaser.Class({
     },
 
     create: function () {
-        // createScene(this, etapa1, 'scene2');
-        createScene(this, etapa1, 'endScene');
+        createScene(this, etapa1, 'scene2');
         etapa1(this);
     },
 
@@ -246,8 +245,6 @@ var endScene = new Phaser.Class({
 
     
     create: function () {
-        // createScene(this, end, 'menuScene');
-        // end(this);
         var endTime = new Date();
         var diff =(endTime - startTime) / 1000;
         diff /= 60;
@@ -266,7 +263,6 @@ var endScene = new Phaser.Class({
     },
 
     update: function(time, delta){
-        // updateEnd(this);
         if(cursors.up.isDown){
             startTime = new Date();
             deaths = 0;

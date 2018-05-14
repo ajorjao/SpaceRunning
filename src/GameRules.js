@@ -79,6 +79,8 @@ var Scene1 = new Phaser.Class({
         this.load.image('stage1','img/etapa1.png');
         this.load.tilemapTiledJSON('map', 'img/etapa1.json');
         this.load.image('walls', 'img/walls.png');
+
+        this.load.audio('theme', 'audio/VivaldisWinter.mp3');
     },
 
     create: function () {
@@ -316,6 +318,9 @@ var config = {
                 scale: 0
             }
         }
+    },
+    audio: {
+        disableWebAudio: true
     }
 };
 
@@ -324,6 +329,16 @@ var game = new Phaser.Game(config);
 
 function etapa1(dis, includingMap=true){
     if (includingMap){
+        var loopMarker = {
+        name: 'loop',
+        start: 0,
+        config: {
+            loop: true
+        }
+    };
+        var music = dis.sound.add('theme');
+        music.addMarker(loopMarker);
+        music.play('loop',{delay: 1});
         // dis.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
         dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
         
@@ -395,7 +410,6 @@ function etapa1(dis, includingMap=true){
 
 function etapa2(dis, includingMap=true){
     if (includingMap){
-
         dis.add.tileSprite(0, 0, 2368, 1600, 'stage2').setOrigin(0);
         
         var map = dis.make.tilemap({ key: 'map2' });

@@ -493,3 +493,66 @@ function updateScene(dis){
     // }, dis);
 }
 
+<<<<<<< HEAD
+=======
+
+function getAchievements(){
+    analitics = JSON.parse(localStorage.getItem('analitics'));
+    return {
+        'muertes': analitics.deaths,
+        'ascesinatos': analitics.kills,
+        'tiempo jugado': analitics.total_time,
+        'morir 10 veces': (analitics.deaths>=10),
+        'morir 25 veces': (analitics.deaths>=25),
+        'morir 50 veces': (analitics.deaths>=50),
+        'matar 25 enemigos': (analitics.kills>=25),
+        'matar 50 enemigos': (analitics.kills>=50),
+        'matar 100 enemigos': (analitics.kills>=100),
+        'pasar etapa 1 muriendo maximo 10 veces': false,
+        'pasar etapa 1 muriendo maximo 5 veces': false,
+        'pasar etapa 1 muriendo maximo 2 veces': false,
+        'pasar etapa 2 muriendo maximo 10 veces': false,
+        'pasar etapa 2 muriendo maximo 5 veces': false,
+        'pasar etapa 2 muriendo maximo 2 veces': false,
+        'pasar etapa 3 muriendo maximo 10 veces': false,
+        'pasar etapa 3 muriendo maximo 5 veces': false,
+        'pasar etapa 3 muriendo maximo 2 veces': false,
+        'pasar etapa 4 muriendo maximo 10 veces': false,
+        'pasar etapa 4 muriendo maximo 5 veces': false,
+        'pasar etapa 4 muriendo maximo 2 veces': false,
+    }
+}
+
+
+function updateAchievements(elem, value=-1){
+    analitics = JSON.parse(localStorage.getItem('analitics'));
+    if (!analitics){
+        localStorage.setItem('analitics',  {
+            'deaths':0,
+            'kills':0,
+            'total_time':0,
+            'stage1_10':false,
+            'stage1_5':false,
+            'stage1_2':false,
+            'stage2_10':false,
+            'stage2_5':false,
+            'stage2_2':false,
+            'stage3_10':false,
+            'stage3_5':false,
+            'stage3_2':false,
+            'stage4_10':false,
+            'stage4_5':false,
+            'stage4_2':false
+        });
+    }
+
+    if (value!=-1){
+        analitics[elem] = value;
+    }
+    else {
+        analitics[elem] += 1;
+    }
+
+    localStorage.setItem('analitics',  JSON.stringify(analitics));
+}
+>>>>>>> fc56d806f58582d7bdb3d87a09ee1c079b9c0942

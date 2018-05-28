@@ -21,12 +21,13 @@ var spawn_points;
 
 //global variables
 var player;
-var startTime = new Date();
+// var startTime = new Date();
 
-var totalTime = 0;
-var deaths = 0;
+var total_time = 0;
+// var deaths = 0;
 var score = 0;
 
+var nextStageBarTime = false;
 var this_life_score = 0;
 var num_enemies;
 var timeProgress;
@@ -35,7 +36,7 @@ var canShot = true;
 var canPause = true;
 var enemiesText;
 var cursors;
-var colors = { 
+var colors = {
     "rojo":0xff8b00, 
     "azul":0x1c00ad, 
     "verde":0x00ad07, 
@@ -86,7 +87,8 @@ var Scene1 = new Phaser.Class({
     },
 
     create: function () {
-        createScene(this, etapa1, 'scene2');
+        // createScene(this, etapa1, 'scene2');
+        createScene(this, etapa1, 'endScene');
         etapa1(this);
     },
 
@@ -249,8 +251,9 @@ var endScene = new Phaser.Class({
 
     
     create: function () {
-        var endTime = new Date();
-        var diff =(endTime - startTime) / 1000;
+        // var endTime = new Date();
+        // var diff =(endTime - startTime) / 1000;
+        var diff = total_time;
         diff /= 60;
 
         document.getElementById("myProgress").style.visibility = "hidden";
@@ -259,7 +262,7 @@ var endScene = new Phaser.Class({
             la demo de Space Running<br><br>\
             Tu puntaje final fue:<br>\
             '+score+'<br><br>\
-            Has muerto: '+deaths+' veces<br>\
+            Has muerto: '+getAchievements().deaths+' veces<br>\
             Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver a jugar'
         document.getElementById("score").style.top = '100px'
         document.getElementById("score").style.textAlign = 'center'
@@ -268,16 +271,15 @@ var endScene = new Phaser.Class({
 
     update: function(time, delta){
         if(cursors.up.isDown){
-            startTime = new Date();
-            deaths = 0;
+            updateAchievements("deaths",0)
             score = 0;
             document.getElementById("score").removeAttribute("style");
             this.scene.start('menuScene');
         }
-        
     }
 
 });
+
 
 var menuScene = new Phaser.Class({
 
@@ -291,12 +293,14 @@ var menuScene = new Phaser.Class({
     },
 
     preload: function () {
-        //mapas
         this.load.image('MainMenu','img/MainMenu.png');
+        this.load.image('Selector','img/MenuSelector.png')
     },
 
     create: function () {
         this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
+        // this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
+        var Selector = this.matter.add.image(280, 400, 'Selector', null, {})
         document.getElementById("score").innerHTML = ''
         document.getElementById("myProgress").style.visibility = "hidden";
         // this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
@@ -310,8 +314,6 @@ var menuScene = new Phaser.Class({
             this.scene.start('scene1');
         }
     } 
-
-
 });
 
 var config = {
@@ -337,17 +339,17 @@ var game = new Phaser.Game(config);
 
 function etapa1(dis, includingMap=true){
     if (includingMap){
-        var loopMarker = {
-        name: 'loop',
-        start: 0,
-        config: {
-            loop: true
-        }
-    };
-        var music = dis.sound.add('theme');
-        music.addMarker(loopMarker);
-        music.play('loop',{delay: 1});
-        // dis.add.tileSprite(0, 0, 1920, 1920, 'background').setOrigin(0);
+        // var loopMarker = {
+        //     name: 'loop',
+        //     start: 0,
+        //     config: {
+        //         loop: true
+        //     }
+        // };
+        // var music = dis.sound.add('theme');
+        // music.addMarker(loopMarker);
+        // music.play('loop',{delay: 1});
+
         dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
         
         var map = dis.make.tilemap({ key: 'map' });

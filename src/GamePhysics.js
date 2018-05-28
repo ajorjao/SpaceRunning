@@ -19,7 +19,9 @@ function createPlayer(dis){
 function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
-    deaths += 1;
+    // deaths += 1;
+    updateAchievements("deaths")
+
     if (num_enemies>0 && this_life_score>=30){
         num_enemies-=1;
     }
@@ -78,6 +80,7 @@ function obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles){
     
     obstacle.gameObject.destroy();
     changeScore(+25)
+    updateAchievements("kills")
     for (var i = 0; i < stage_obstacles.length; i++) {
         if (stage_obstacles[i].active == false){
             stage_obstacles.splice(i, 1);
@@ -93,11 +96,11 @@ function obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles){
         explosion.destroy();
         var isInvalid;
         var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
-        var distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+        var distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y);
 
         while (distance<500){
             pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
-            distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+            distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y);
         }
 
         stage_obstacles.push(createAlien(dis, pos, obstacles, collisionTokens["obstacles"]));
@@ -171,11 +174,13 @@ function nextStage(dis, nextScene){
     dis.matter.pause();
     isPaused = true;
     timeProgress = 0;
+    nextStageBarTime = true;
 
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
 
     setTimeout(function() {
+        nextStageBarTime = false;
         document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Cargando...'
         dis.scene.start(nextScene);
     }, 1010);
@@ -212,17 +217,30 @@ function startTimeBar(maxTime) {
     var id = setInterval(frame, 1000);
     function frame() {
         if (timeProgress <= 0) {
-            clearInterval(id);
-            elem.innerHTML = '';
-            document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Tiempo acabado'
+            if (nextStageBarTime){
+                clearInterval(id);
+            }
+            if (timeProgress==0){
+                elem.innerHTML = '';
+                document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Tiempo acabado';
+            }
+
+            if (isPaused){
+                updateAchievements('total_time', total_time);
+            }
+            else{
+                total_time++;
+            }
         } else {
             if (!isPaused){
                 timeProgress--;
-                changeScore(-20)
+                changeScore(-20);
                 elem.style.width = timeProgress*100/maxTime + '%';
                 elem.innerHTML = timeProgress  + 'seg';
+                total_time++;
             }
             else if (isPaused){
+                updateAchievements('total_time', total_time);
                 elem.innerHTML = timeProgress  + 'seg (Pausado)';
             }
         }
@@ -525,7 +543,7 @@ function getAchievements(){
 function updateAchievements(elem, value=-1){
     analitics = JSON.parse(localStorage.getItem('analitics'));
     if (!analitics){
-        localStorage.setItem('analitics',  {
+        analitics = {
             'deaths':0,
             'kills':0,
             'total_time':0,
@@ -541,7 +559,8 @@ function updateAchievements(elem, value=-1){
             'stage4_10':false,
             'stage4_5':false,
             'stage4_2':false
-        });
+        }
+        // localStorage.setItem('analitics',  JSON.stringify(analitics));
     }
 
     if (value!=-1){

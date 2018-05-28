@@ -319,14 +319,9 @@ var menuScene = new Phaser.Class({
         this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
         document.getElementById("score").innerHTML = ''
         document.getElementById("myProgress").style.visibility = "hidden";
-<<<<<<< HEAD
-        this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
-        this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
-        this.add.text(200, 350, 'Presiona f para fullscreen', { fontSize: '32px', fill: '#fff' });
-=======
+
         // this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
         // this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
->>>>>>> fc56d806f58582d7bdb3d87a09ee1c079b9c0942
         cursors = this.input.keyboard.createCursorKeys();
         this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },

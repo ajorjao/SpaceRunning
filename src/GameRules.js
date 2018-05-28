@@ -22,8 +22,11 @@ var spawn_points;
 //global variables
 var player;
 var startTime = new Date();
+
+var totalTime = 0;
 var deaths = 0;
 var score = 0;
+
 var this_life_score = 0;
 var num_enemies;
 var timeProgress;
@@ -75,8 +78,7 @@ var Scene1 = new Phaser.Class({
         this.load.spritesheet('portal', 'img/portal.png', { frameWidth: 32, frameHeight: 32 })
 
         //mapas
-        // this.load.image('background','img/utiles/space.png');
-        this.load.image('stage1','img/etapa1.png');
+        this.load.image('stage1','img/space1.png');
         this.load.tilemapTiledJSON('map', 'img/etapa1.json');
         this.load.image('walls', 'img/walls.png');
     },
@@ -286,11 +288,17 @@ var menuScene = new Phaser.Class({
         Phaser.Scene.call(this, { key: 'menuScene' });
     },
 
+    preload: function () {
+        //mapas
+        this.load.image('MainMenu','img/MainMenu.png');
+    },
+
     create: function () {
+        this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
         document.getElementById("score").innerHTML = ''
         document.getElementById("myProgress").style.visibility = "hidden";
-        this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
-        this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
+        // this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
+        // this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
         cursors = this.input.keyboard.createCursorKeys();
     },
 

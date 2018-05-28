@@ -492,3 +492,4 @@ function updateScene(dis){
     //     dis.matter.world.debugGraphic.visible = dis.matter.world.drawDebug;
     // }, dis);
 }
+

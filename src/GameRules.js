@@ -86,9 +86,13 @@ var Scene1 = new Phaser.Class({
     create: function () {
         createScene(this, etapa1, 'scene2');
         etapa1(this);
+    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
-    update: function (time, delta) {
+    update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         updateScene(this);
     }
 });
@@ -133,9 +137,13 @@ var Scene2 = new Phaser.Class({
     create: function () {
         createScene(this, etapa2, 'scene3');
         etapa2(this);
+    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
-    update: function (time, delta) {
+    update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         updateScene(this);
     }
 });
@@ -179,9 +187,13 @@ var Scene3 = new Phaser.Class({
     create: function () {
         createScene(this, etapa3, 'scene4');
         etapa3(this);
+    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
-    update: function (time, delta) {
+    update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         updateScene(this);
     }
 
@@ -226,9 +238,13 @@ var Scene4 = new Phaser.Class({
     create: function () {
         createScene(this, etapa4, 'endScene');
         etapa4(this);
+    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
-    update: function (time, delta) {
+    update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         updateScene(this);
     }
 
@@ -262,9 +278,13 @@ var endScene = new Phaser.Class({
         document.getElementById("score").style.top = '100px'
         document.getElementById("score").style.textAlign = 'center'
         cursors = this.input.keyboard.createCursorKeys();
+    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         if(cursors.up.isDown){
             startTime = new Date();
             deaths = 0;
@@ -293,10 +313,15 @@ var menuScene = new Phaser.Class({
         document.getElementById("myProgress").style.visibility = "hidden";
         this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
         this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
+        this.add.text(200, 350, 'Presiona f para fullscreen', { fontSize: '32px', fill: '#fff' });
         cursors = this.input.keyboard.createCursorKeys();
+        this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
+        if(this.key.isDown){
+                game.resize(window.innerWidth, window.innerHeight);  
+        }
         if(cursors.space.isDown){
             document.getElementById("myProgress").style.visibility = "visible";
             this.scene.start('scene1');
@@ -310,7 +335,7 @@ var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [menuScene,Scene1, Scene2, Scene3,Scene4,endScene],
+    scene: [menuScene,Scene1,Scene2,Scene3,Scene4 ,endScene],
     physics: {
         default: 'matter',
         matter: {
@@ -326,6 +351,24 @@ var config = {
 
 var game = new Phaser.Game(config);
 
+function resize (width, height)
+{
+    
+    if(game.config.width == window.innerWidth){
+        game.config.width = 800;
+    }else{
+        game.config.width = window.innerWidth;
+        this.cameras.resize(width, height);
+    }
+    if(game.config.height == window.innerHeight){
+        game.config.height = 600;
+        this.cameras.resize(width, height);
+    }else{
+       game.config.height = window.innerHeight;
+       this.cameras.resize(width, height); 
+    }
+
+}
 
 function etapa1(dis, includingMap=true){
     if (includingMap){
@@ -388,8 +431,17 @@ function etapa1(dis, includingMap=true){
 
         enemiesText = dis.add.text(400, 210, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
 
-        dis.cameras.main.setSize(800, 600);
-        dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        if(game.config.width == window.innerWidth){
+            dis.cameras.main.setSize(window.innerWidth, window.innerHeight);
+            dis.cameras.add(game.config.width-360, game.config.height-350, 350, 350, false, 'mini_map')
+            
+        }
+        else{
+            dis.cameras.main.setSize(800, 600);
+            dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        }
+        
+        
         dis.cameras.cameras[1].zoom = 0.1
 
         dis.cameras.main.startFollow(player);
@@ -461,8 +513,15 @@ function etapa2(dis, includingMap=true){
         
         isPaused = false;
 
-        dis.cameras.main.setSize(800, 600);
-        dis.cameras.add(350, 250, 450, 350, false, 'mini_map')
+        if(game.config.width == window.innerWidth){
+            dis.cameras.main.setSize(window.innerWidth, window.innerHeight);
+            dis.cameras.add(game.config.width-470, game.config.height-330, 470, 350, false, 'mini_map')
+            
+        }
+        else{
+            dis.cameras.main.setSize(800, 600);
+            dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        }
         dis.cameras.cameras[1].zoom = 0.11
 
         dis.cameras.main.startFollow(player);
@@ -482,7 +541,7 @@ function etapa2(dis, includingMap=true){
 function etapa3(dis, includingMap=true){
     if (includingMap){
 
-        dis.add.tileSprite(0, 0, 3600, 1500, 'stage3').setOrigin(0);
+        dis.add.tileSprite(0, 0, 3840, 1600, 'stage3').setOrigin(0);
         
         var map = dis.make.tilemap({ key: 'map3' });
         var tileset = map.addTilesetImage('walls2');
@@ -533,8 +592,15 @@ function etapa3(dis, includingMap=true){
         
         isPaused = false;
 
-        dis.cameras.main.setSize(800, 600);
-        dis.cameras.add(0, 270, 850, 350, false, 'mini_map')
+        if(game.config.width == window.innerWidth){
+            dis.cameras.main.setSize(window.innerWidth, window.innerHeight);
+            dis.cameras.add(game.config.width-750, game.config.height-330, 750, 330, false, 'mini_map')
+            
+        }
+        else{
+            dis.cameras.main.setSize(800, 600);
+            dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        }
         dis.cameras.cameras[1].zoom = 0.11
 
         dis.cameras.main.startFollow(player);
@@ -605,8 +671,15 @@ function etapa4(dis, includingMap=true){
         
         isPaused = false;
 
-        dis.cameras.main.setSize(800, 600);
-        dis.cameras.add(425, 30, 370, 650, false, 'mini_map')
+        if(game.config.width == window.innerWidth){
+            dis.cameras.main.setSize(window.innerWidth, window.innerHeight);
+            dis.cameras.add(game.config.width-390, game.config.height-520, 390, 520, false, 'mini_map')
+            
+        }
+        else{
+            dis.cameras.main.setSize(800, 600);
+            dis.cameras.add(450, 250, 350, 350, false, 'mini_map')
+        }
         dis.cameras.cameras[1].zoom = 0.11
 
         dis.cameras.main.startFollow(player);

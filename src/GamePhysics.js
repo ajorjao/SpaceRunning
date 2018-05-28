@@ -511,6 +511,8 @@ function updateScene(dis){
     // }, dis);
 }
 
+<<<<<<< HEAD
+=======
 
 function getAchievements(){
     analitics = JSON.parse(localStorage.getItem('analitics'));
@@ -572,3 +574,4 @@ function updateAchievements(elem, value=-1){
 
     localStorage.setItem('analitics',  JSON.stringify(analitics));
 }
+>>>>>>> fc56d806f58582d7bdb3d87a09ee1c079b9c0942

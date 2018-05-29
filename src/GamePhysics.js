@@ -175,7 +175,9 @@ function nextStage(dis, nextScene){
     dis.matter.pause();
     isPaused = true;
     timeProgress = 0;
+    updateAchievements('current_stage',nextScene);
 
+    //MANEJO DE ACHIEVEMENTS
     //si se pasó la etapa 1
     if (nextScene=="scene2"){
         if(stage_deaths<=2){
@@ -238,6 +240,8 @@ function nextStage(dis, nextScene){
     }
 
     stage_deaths = 0;
+    last_stage_score = score;
+    updateAchievements('last_stage_score',score)
     nextStageBarTime = true;
 
     dis.cameras.main.fade(750, 0, 0, 0);
@@ -263,10 +267,15 @@ function pause(dis){
 }
 
 
-function changeScore(changed) {
-    score += changed;
-    if (changed>0){
-        this_life_score += changed;
+function changeScore(changed, isAdding=true) {
+    if (isAdding){
+        score += changed;
+        if (changed>0){
+            this_life_score += changed;
+        }
+    }
+    else{
+        score = changed;
     }
     document.getElementById("score").innerHTML = 'Score: '+ score
 }
@@ -572,7 +581,9 @@ function updateScene(dis){
     }
 
     if(dis.f.isDown){
+        pause(dis)
         game.resize(window.innerWidth, window.innerHeight);
+        dis.scene.start(dis.scene.key);
     }
     
 
@@ -602,7 +613,9 @@ function getAchievements(){
             'stage3_2':false,
             'stage4_10':false,
             'stage4_5':false,
-            'stage4_2':false
+            'stage4_2':false,
+            'current_stage':'scene1',
+            'last_stage_score':0
         }
         localStorage.setItem('analitics',  JSON.stringify(analitics));
     }
@@ -628,7 +641,9 @@ function getAchievements(){
         'pasar_etapa_3_muriendo_maximo_2_veces': analitics.stage3_2,
         'pasar_etapa_4_muriendo_maximo_10_veces': analitics.stage4_10,
         'pasar_etapa_4_muriendo_maximo_5_veces': analitics.stage4_5,
-        'pasar_etapa_4_muriendo_maximo_2_veces': analitics.stage4_2
+        'pasar_etapa_4_muriendo_maximo_2_veces': analitics.stage4_2,
+        'current_stage': analitics.current_stage,
+        'last_stage_score':analitics.last_stage_score
     }
 }
 
@@ -651,7 +666,9 @@ function updateAchievements(elem, value=-1){
             'stage3_2':false,
             'stage4_10':false,
             'stage4_5':false,
-            'stage4_2':false
+            'stage4_2':false,
+            'current_stage':'scene1',
+            'last_stage_score':0
         }
         // localStorage.setItem('analitics',  JSON.stringify(analitics));
     }

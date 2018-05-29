@@ -49,8 +49,6 @@ var colors = {
     "naranjo":0xd47700
 }
 
-
-
 var Scene1 = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -85,8 +83,6 @@ var Scene1 = new Phaser.Class({
         this.load.image('stage1','img/space1.png');
         this.load.tilemapTiledJSON('map', 'img/etapa1.json');
         this.load.image('walls', 'img/walls.png');
-
-        this.load.audio('theme', 'audio/VivaldisWinter.mp3');
     },
 
     create: function () {
@@ -259,6 +255,8 @@ var endScene = new Phaser.Class({
             updateAchievements("best_score", score)
             new_record = " - <i>Nuevo Record!</i>"
         }
+        updateAchievements("current_stage", 'scene1');
+        updateAchievements("last_stage_score", 0);
 
         document.getElementById("myProgress").style.visibility = "hidden";
         document.getElementById("score").innerHTML = '\
@@ -280,9 +278,44 @@ var endScene = new Phaser.Class({
         if(cursors.up.isDown){
             game.resize(800, 600);
             document.getElementById("score").removeAttribute("style");
-            this.scene.start('menuScene');
+            this.scene.start('preloadScene');
         }
     }
+});
+
+var preloadScene = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function preloadScene ()
+    {
+        Phaser.Scene.call(this, { key: 'preloadScene' });
+    },
+
+    preload: function () {
+        this.load.audio('theme', 'audio/VivaldisWinter.mp3');
+    },
+
+    create: function () {
+        document.getElementById("score").innerHTML = ''
+        document.getElementById("myProgress").style.visibility = "hidden";
+
+        var loopMarker = {
+            name: 'loop',
+            start: 0,
+            config: {
+                loop: true
+            }
+        };
+        var music = this.sound.add('theme');
+        music.addMarker(loopMarker);
+        music.play('loop',{delay: 1});
+
+        this.scene.start('menuScene');
+    }
+
 });
 
 var menuScene = new Phaser.Class({
@@ -299,15 +332,14 @@ var menuScene = new Phaser.Class({
     preload: function () {
         this.load.image('MainMenu','img/MainMenu.png');
         this.load.image('Selector','img/MenuSelector.png');
+
+        // this.load.audio('theme', 'audio/VivaldisWinter.mp3');
     },
 
     create: function () {
         this.add.tileSprite(0, 0, 800, 600, 'MainMenu').setOrigin(0);
-        // this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
         Selector = this.matter.add.image(280, 400, 'Selector', null, {})
         selected_item = "Jugar"
-        document.getElementById("score").innerHTML = ''
-        document.getElementById("myProgress").style.visibility = "hidden";
 
         cursors = this.input.keyboard.createCursorKeys();
         this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -364,7 +396,8 @@ var menuScene = new Phaser.Class({
 
 function startGame(dis){
     document.getElementById("myProgress").style.visibility = "visible";
-    dis.scene.start('scene1');
+    // dis.scene.start('scene1');
+    dis.scene.start(getAchievements().current_stage);
 }
 
 function seeAchievements(dis){
@@ -471,7 +504,7 @@ var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [menuScene, Scene1, Scene2, Scene3, Scene4, endScene, howToPlayScene, seeAchievementsScene],
+    scene: [preloadScene, menuScene, Scene1, Scene2, Scene3, Scene4, endScene, howToPlayScene, seeAchievementsScene],
     physics: {
         default: 'matter',
         matter: {
@@ -504,19 +537,8 @@ function resize(width, height){
 }
 
 
-
 function etapa1(dis, includingMap=true){
     if (includingMap){
-        // var loopMarker = {
-        //     name: 'loop',
-        //     start: 0,
-        //     config: {
-        //         loop: true
-        //     }
-        // };
-        // var music = dis.sound.add('theme');
-        // music.addMarker(loopMarker);
-        // music.play('loop',{delay: 1});
 
         dis.add.tileSprite(0, 0, 1920, 1920, 'stage1').setOrigin(0);
         
@@ -536,7 +558,7 @@ function etapa1(dis, includingMap=true){
 
         var maxTime = 180;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*20)
+        // changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [11.5*64, 5*64], "rojo", 0, 1, 2))
@@ -559,7 +581,9 @@ function etapa1(dis, includingMap=true){
         createPortal(dis, [15.5*64, 15.5*64])
 
         num_enemies = spawn_points.length;
-        changeScore(100*num_enemies)
+        // changeScore(100*num_enemies)
+        var last_stage_score = getAchievements().last_stage_score
+        changeScore(last_stage_score+maxTime*20+100*num_enemies, false)
 
         
         isPaused = false;
@@ -580,7 +604,6 @@ function etapa1(dis, includingMap=true){
         dis.cameras.cameras[1].zoom = 0.1
 
         dis.cameras.main.startFollow(player);
-
     }
 
     stage_obstacles = []
@@ -620,7 +643,7 @@ function etapa2(dis, includingMap=true){
 
         var maxTime = 300;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*20)
+        // changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [10.5*64, 19*64], "rojo", 0, 1, 2))
@@ -642,7 +665,9 @@ function etapa2(dis, includingMap=true){
         createPortal(dis, [18.5*64, 4.5*64])
 
         num_enemies = spawn_points.length;
-        changeScore(100*num_enemies)
+        // changeScore(100*num_enemies)
+        var last_stage_score = getAchievements().last_stage_score
+        changeScore(last_stage_score+maxTime*20+100*num_enemies, false)
 
         enemiesText = dis.add.text(7.5*64, 10.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
         
@@ -699,7 +724,7 @@ function etapa3(dis, includingMap=true){
 
         var maxTime = 420;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*20)
+        // changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [6*64, 6.5*64], "rojo", 0, 2, 1))
@@ -721,7 +746,9 @@ function etapa3(dis, includingMap=true){
         createPortal(dis, [7.5*64, 3.5*64])
 
         num_enemies = spawn_points.length;
-        changeScore(100*num_enemies)
+        // changeScore(100*num_enemies)
+        var last_stage_score = getAchievements().last_stage_score
+        changeScore(last_stage_score+maxTime*20+100*num_enemies, false)
 
         enemiesText = dis.add.text(5.25*64, 10.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
         
@@ -778,7 +805,7 @@ function etapa4(dis, includingMap=true){
 
         var maxTime = 600;
         startTimeBar(maxTime); //barra de tiempo en segundos
-        changeScore(maxTime*20)
+        // changeScore(maxTime*20)
 
         stage_doors = []
         stage_doors.push(createDoor(dis, [21*64, 37*64], "rojo", 0, 1, 2))
@@ -800,7 +827,9 @@ function etapa4(dis, includingMap=true){
         createPortal(dis, [16.5*64, 7.5*64])
 
         num_enemies = spawn_points.length;
-        changeScore(100*num_enemies)
+        // changeScore(100*num_enemies)
+        var last_stage_score = getAchievements().last_stage_score
+        changeScore(last_stage_score+maxTime*20+100*num_enemies, false)
 
         enemiesText = dis.add.text(12.25*64, 14.25*64, 'Nº enemigos: ', { fontSize: '32px', fill: '#000' });
         

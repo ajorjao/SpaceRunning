@@ -19,9 +19,9 @@ function createPlayer(dis){
 function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
-    deaths += 1;
     stage_deaths += 1;
-    updateAchievements("deaths")
+    updateAchievements("deaths");
+    updateAchievements("last_game_deaths");
 
     if (num_enemies>0 && this_life_score>=30){
         num_enemies-=1;
@@ -181,61 +181,61 @@ function nextStage(dis, nextScene){
     //si se pasó la etapa 1
     if (nextScene=="scene2"){
         if(stage_deaths<=2){
-            updateAchievements("stage1_2", true)
-            updateAchievements("stage1_5", true)
-            updateAchievements("stage1_10", true)
+            updateAchievements("stage1_oro", true)
+            updateAchievements("stage1_plata", true)
+            updateAchievements("stage1_bronce", true)
         }
-        else if(stage_deaths<=5){
-            updateAchievements("stage1_5", true)
-            updateAchievements("stage1_10", true)
+        else if(stage_deaths<=4){
+            updateAchievements("stage1_plata", true)
+            updateAchievements("stage1_bronce", true)
         }
-        else if(stage_deaths<=10){
-            updateAchievements("stage1_10", true)
+        else if(stage_deaths<=6){
+            updateAchievements("stage1_bronce", true)
         }
     }
     //si se pasó la etapa 2
     else if (nextScene=="scene3"){
-        if(stage_deaths<=2){
-            updateAchievements("stage2_2", true)
-            updateAchievements("stage2_5", true)
-            updateAchievements("stage2_10", true)
+        if(stage_deaths<=4){
+            updateAchievements("stage2_oro", true)
+            updateAchievements("stage2_plata", true)
+            updateAchievements("stage2_bronce", true)
         }
-        else if(stage_deaths<=5){
-            updateAchievements("stage2_5", true)
-            updateAchievements("stage2_10", true)
+        else if(stage_deaths<=8){
+            updateAchievements("stage2_plata", true)
+            updateAchievements("stage2_bronce", true)
         }
-        else if(stage_deaths<=10){
-            updateAchievements("stage2_10", true)
+        else if(stage_deaths<=12){
+            updateAchievements("stage2_bronce", true)
         }
     }
     //si se pasó la etapa 3
     else if (nextScene=="scene4"){
-        if(stage_deaths<=2){
-            updateAchievements("stage3_2", true)
-            updateAchievements("stage3_5", true)
-            updateAchievements("stage3_10", true)
+        if(stage_deaths<=6){
+            updateAchievements("stage3_oro", true)
+            updateAchievements("stage3_plata", true)
+            updateAchievements("stage3_bronce", true)
         }
-        else if(stage_deaths<=5){
-            updateAchievements("stage3_5", true)
-            updateAchievements("stage3_10", true)
+        else if(stage_deaths<=12){
+            updateAchievements("stage3_plata", true)
+            updateAchievements("stage3_bronce", true)
         }
-        else if(stage_deaths<=10){
-            updateAchievements("stage3_10", true)
+        else if(stage_deaths<=18){
+            updateAchievements("stage3_bronce", true)
         }
     }
     //si se pasó la etapa 4
     else if (nextScene=="endScene"){
-        if(stage_deaths<=2){
-            updateAchievements("stage4_2", true)
-            updateAchievements("stage4_5", true)
-            updateAchievements("stage4_10", true)
+        if(stage_deaths<=8){
+            updateAchievements("stage4_oro", true)
+            updateAchievements("stage4_plata", true)
+            updateAchievements("stage4_bronce", true)
         }
-        else if(stage_deaths<=5){
-            updateAchievements("stage4_5", true)
-            updateAchievements("stage4_10", true)
+        else if(stage_deaths<=16){
+            updateAchievements("stage4_plata", true)
+            updateAchievements("stage4_bronce", true)
         }
-        else if(stage_deaths<=10){
-            updateAchievements("stage4_10", true)
+        else if(stage_deaths<=24){
+            updateAchievements("stage4_bronce", true)
         }
     }
 
@@ -299,6 +299,7 @@ function startTimeBar(maxTime) {
 
             if (isPaused){
                 updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                updateAchievements('last_game_time', total_time);
                 unsaved_time = 0;
             }
             else{
@@ -316,6 +317,7 @@ function startTimeBar(maxTime) {
             }
             else if (isPaused){
                 updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                updateAchievements('last_game_time', total_time);
                 unsaved_time = 0;
                 elem.innerHTML = timeProgress  + 'seg (Pausado)';
             }
@@ -602,20 +604,22 @@ function getAchievements(){
             'deaths':0,
             'kills':0,
             'total_time':0,
-            'stage1_10':false,
-            'stage1_5':false,
-            'stage1_2':false,
-            'stage2_10':false,
-            'stage2_5':false,
-            'stage2_2':false,
-            'stage3_10':false,
-            'stage3_5':false,
-            'stage3_2':false,
-            'stage4_10':false,
-            'stage4_5':false,
-            'stage4_2':false,
+            'stage1_bronce':false,
+            'stage1_plata':false,
+            'stage1_oro':false,
+            'stage2_bronce':false,
+            'stage2_plata':false,
+            'stage2_oro':false,
+            'stage3_bronce':false,
+            'stage3_plata':false,
+            'stage3_oro':false,
+            'stage4_bronce':false,
+            'stage4_plata':false,
+            'stage4_oro':false,
             'current_stage':'scene1',
-            'last_stage_score':0
+            'last_stage_score':0,
+            'last_game_deaths':0,
+            'last_game_time':0
         }
         localStorage.setItem('analitics',  JSON.stringify(analitics));
     }
@@ -624,26 +628,28 @@ function getAchievements(){
         'muertes': analitics.deaths,
         'ascesinatos': analitics.kills,
         'tiempo_jugado': analitics.total_time,
-        'morir_10_veces': (analitics.deaths>=10),
-        'morir_25_veces': (analitics.deaths>=25),
+        'morir_20_veces': (analitics.deaths>=20),
         'morir_50_veces': (analitics.deaths>=50),
-        'matar_25_enemigos': (analitics.kills>=25),
+        'morir_100_veces': (analitics.deaths>=100),
         'matar_50_enemigos': (analitics.kills>=50),
         'matar_100_enemigos': (analitics.kills>=100),
-        'pasar_etapa_1_muriendo_maximo_10_veces': analitics.stage1_10,
-        'pasar_etapa_1_muriendo_maximo_5_veces': analitics.stage1_5,
-        'pasar_etapa_1_muriendo_maximo_2_veces': analitics.stage1_2,
-        'pasar_etapa_2_muriendo_maximo_10_veces': analitics.stage2_10,
-        'pasar_etapa_2_muriendo_maximo_5_veces': analitics.stage2_5,
-        'pasar_etapa_2_muriendo_maximo_2_veces': analitics.stage2_2,
-        'pasar_etapa_3_muriendo_maximo_10_veces': analitics.stage3_10,
-        'pasar_etapa_3_muriendo_maximo_5_veces': analitics.stage3_5,
-        'pasar_etapa_3_muriendo_maximo_2_veces': analitics.stage3_2,
-        'pasar_etapa_4_muriendo_maximo_10_veces': analitics.stage4_10,
-        'pasar_etapa_4_muriendo_maximo_5_veces': analitics.stage4_5,
-        'pasar_etapa_4_muriendo_maximo_2_veces': analitics.stage4_2,
+        'matar_200_enemigos': (analitics.kills>=200),
+        'pasar_etapa_1_bronce': analitics.stage1_bronce,
+        'pasar_etapa_1_plata': analitics.stage1_plata,
+        'pasar_etapa_1_oro': analitics.stage1_oro,
+        'pasar_etapa_2_bronce': analitics.stage2_bronce,
+        'pasar_etapa_2_plata': analitics.stage2_plata,
+        'pasar_etapa_2_oro': analitics.stage2_oro,
+        'pasar_etapa_3_bronce': analitics.stage3_bronce,
+        'pasar_etapa_3_plata': analitics.stage3_plata,
+        'pasar_etapa_3_oro': analitics.stage3_oro,
+        'pasar_etapa_4_bronce': analitics.stage4_bronce,
+        'pasar_etapa_4_plata': analitics.stage4_plata,
+        'pasar_etapa_4_oro': analitics.stage4_oro,
         'current_stage': analitics.current_stage,
-        'last_stage_score':analitics.last_stage_score
+        'last_stage_score':analitics.last_stage_score,
+        'last_game_deaths':analitics.last_game_deaths,
+        'last_game_time':analitics.last_game_time
     }
 }
 
@@ -655,22 +661,23 @@ function updateAchievements(elem, value=-1){
             'deaths':0,
             'kills':0,
             'total_time':0,
-            'stage1_10':false,
-            'stage1_5':false,
-            'stage1_2':false,
-            'stage2_10':false,
-            'stage2_5':false,
-            'stage2_2':false,
-            'stage3_10':false,
-            'stage3_5':false,
-            'stage3_2':false,
-            'stage4_10':false,
-            'stage4_5':false,
-            'stage4_2':false,
+            'stage1_bronce':false,
+            'stage1_plata':false,
+            'stage1_oro':false,
+            'stage2_bronce':false,
+            'stage2_plata':false,
+            'stage2_oro':false,
+            'stage3_bronce':false,
+            'stage3_plata':false,
+            'stage3_oro':false,
+            'stage4_bronce':false,
+            'stage4_plata':false,
+            'stage4_oro':false,
             'current_stage':'scene1',
-            'last_stage_score':0
+            'last_stage_score':0,
+            'last_game_deaths':0,
+            'last_game_time':0
         }
-        // localStorage.setItem('analitics',  JSON.stringify(analitics));
     }
 
     if (value!=-1){

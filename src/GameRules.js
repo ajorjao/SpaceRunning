@@ -21,11 +21,10 @@ var spawn_points;
 
 //global variables
 var player;
-var deaths = 0;
 var stage_deaths = 0;
-var total_time = 0;
+var total_time = getAchievements().last_game_time;
 var unsaved_time = 0;
-var score = 0;
+var score = getAchievements().last_stage_score;
 
 var Selector;
 var selected_item;
@@ -247,7 +246,7 @@ var endScene = new Phaser.Class({
 
     
     create: function () {
-        var diff = total_time;
+        var diff = getAchievements().last_game_time;
         diff /= 60;
 
         var new_record = ''
@@ -255,8 +254,6 @@ var endScene = new Phaser.Class({
             updateAchievements("best_score", score)
             new_record = " - <i>Nuevo Record!</i>"
         }
-        updateAchievements("current_stage", 'scene1');
-        updateAchievements("last_stage_score", 0);
 
         document.getElementById("myProgress").style.visibility = "hidden";
         document.getElementById("score").innerHTML = '\
@@ -264,14 +261,17 @@ var endScene = new Phaser.Class({
             la demo de Space Running<br><br>\
             Tu puntaje final fue:<br>\
             '+score+new_record+'<br><br>\
-            Has muerto: '+deaths+' veces<br>\
+            Has muerto: '+getAchievements().last_game_deaths+' veces<br>\
             Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver <br> al menu principal'
         document.getElementById("score").style.top = '100px'
         document.getElementById("score").style.textAlign = 'center'
         cursors = this.input.keyboard.createCursorKeys();
         score = 0;
-        deaths = 0;
-        total_time = 0;
+
+        updateAchievements("current_stage", 'scene1');
+        updateAchievements("last_stage_score", 0);
+        updateAchievements("last_game_time", 0);
+        updateAchievements("last_game_deaths", 0);
     },
 
     update: function(time, delta){
@@ -462,28 +462,27 @@ var seeAchievementsScene = new Phaser.Class({
         this.add.text(235, 100, achievements.mejor_puntaje, { fontSize: '24px', fill: '#fff' });
         this.add.text(235, 130, achievements.muertes, { fontSize: '24px', fill: '#fff' });
         this.add.text(235, 160, achievements.ascesinatos, { fontSize: '24px', fill: '#fff' });
-        // this.add.text(235, 190, achievements.tiempo_jugado, { fontSize: '24px', fill: '#fff' });
         this.add.text(235, 190, Math.abs(Math.floor(achievements.tiempo_jugado/60))+' min '+Math.abs(Math.floor((achievements.tiempo_jugado/60%1)*60))+' seg', { fontSize: '24px', fill: '#fff' });
 
 
-        this.add.text(680, 82, achievements.morir_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 112, achievements.morir_25_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 142, achievements.morir_50_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 172, achievements.matar_25_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 202, achievements.matar_50_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 232, achievements.matar_100_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 265, achievements.pasar_etapa_1_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 290, achievements.pasar_etapa_1_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 317, achievements.pasar_etapa_1_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 346, achievements.pasar_etapa_2_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 372, achievements.pasar_etapa_2_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 398, achievements.pasar_etapa_2_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 427, achievements.pasar_etapa_3_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 453, achievements.pasar_etapa_3_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 481, achievements.pasar_etapa_3_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 507, achievements.pasar_etapa_4_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 535, achievements.pasar_etapa_4_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
-        this.add.text(680, 563, achievements.pasar_etapa_4_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 82, achievements.morir_20_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 112, achievements.morir_50_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 142, achievements.morir_100_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 172, achievements.matar_50_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 202, achievements.matar_100_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 232, achievements.matar_200_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 265, achievements.pasar_etapa_1_bronce.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 290, achievements.pasar_etapa_1_plata.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 317, achievements.pasar_etapa_1_oro.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 346, achievements.pasar_etapa_2_bronce.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 372, achievements.pasar_etapa_2_plata.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 398, achievements.pasar_etapa_2_oro.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 427, achievements.pasar_etapa_3_bronce.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 453, achievements.pasar_etapa_3_plata.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 481, achievements.pasar_etapa_3_oro.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 507, achievements.pasar_etapa_4_bronce.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 535, achievements.pasar_etapa_4_plata.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 563, achievements.pasar_etapa_4_oro.toString(), { fontSize: '22px', fill: '#fff' });
 
         this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         this.esc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);

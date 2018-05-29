@@ -21,11 +21,14 @@ var spawn_points;
 
 //global variables
 var player;
-// var startTime = new Date();
-
+var deaths = 0;
+var stage_deaths = 0;
 var total_time = 0;
-// var deaths = 0;
+var unsaved_time = 0;
 var score = 0;
+
+var Selector;
+var selected_item;
 
 var nextStageBarTime = false;
 var this_life_score = 0;
@@ -87,20 +90,15 @@ var Scene1 = new Phaser.Class({
     },
 
     create: function () {
-        // createScene(this, etapa1, 'scene2');
-        createScene(this, etapa1, 'endScene');
+        createScene(this, etapa1, 'scene2');
+        // createScene(this, etapa1, 'endScene');
         etapa1(this);
-    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
-        }
         updateScene(this);
     }
 });
-
 
 var Scene2 = new Phaser.Class({
 
@@ -141,13 +139,9 @@ var Scene2 = new Phaser.Class({
     create: function () {
         createScene(this, etapa2, 'scene3');
         etapa2(this);
-    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
-        }
         updateScene(this);
     }
 });
@@ -191,16 +185,11 @@ var Scene3 = new Phaser.Class({
     create: function () {
         createScene(this, etapa3, 'scene4');
         etapa3(this);
-    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
-        }
         updateScene(this);
     }
-
 });
 
 var Scene4 = new Phaser.Class({
@@ -242,16 +231,11 @@ var Scene4 = new Phaser.Class({
     create: function () {
         createScene(this, etapa4, 'endScene');
         etapa4(this);
-    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
-        }
         updateScene(this);
     }
-
 });
 
 var endScene = new Phaser.Class({
@@ -267,39 +251,39 @@ var endScene = new Phaser.Class({
 
     
     create: function () {
-        // var endTime = new Date();
-        // var diff =(endTime - startTime) / 1000;
         var diff = total_time;
         diff /= 60;
+
+        var new_record = ''
+        if (getAchievements().mejor_puntaje < score){
+            updateAchievements("best_score", score)
+            new_record = " - <i>Nuevo Record!</i>"
+        }
 
         document.getElementById("myProgress").style.visibility = "hidden";
         document.getElementById("score").innerHTML = '\
             Felicitaciones! has terminado<br>\
             la demo de Space Running<br><br>\
             Tu puntaje final fue:<br>\
-            '+score+'<br><br>\
-            Has muerto: '+getAchievements().deaths+' veces<br>\
-            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver a jugar'
+            '+score+new_record+'<br><br>\
+            Has muerto: '+deaths+' veces<br>\
+            Tiempo jugado: '+Math.abs(Math.floor(diff))+' min '+Math.abs(Math.floor((diff%1)*60))+' seg<br><br>Presiona arriba para volver <br> al menu principal'
         document.getElementById("score").style.top = '100px'
         document.getElementById("score").style.textAlign = 'center'
         cursors = this.input.keyboard.createCursorKeys();
-    this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        score = 0;
+        deaths = 0;
+        total_time = 0;
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
-        }
         if(cursors.up.isDown){
-            updateAchievements("deaths",0)
-            score = 0;
+            game.resize(800, 600);
             document.getElementById("score").removeAttribute("style");
             this.scene.start('menuScene');
         }
     }
-
 });
-
 
 var menuScene = new Phaser.Class({
 
@@ -314,38 +298,180 @@ var menuScene = new Phaser.Class({
 
     preload: function () {
         this.load.image('MainMenu','img/MainMenu.png');
-        this.load.image('Selector','img/MenuSelector.png')
+        this.load.image('Selector','img/MenuSelector.png');
     },
 
     create: function () {
-        this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
+        this.add.tileSprite(0, 0, 800, 600, 'MainMenu').setOrigin(0);
         // this.add.tileSprite(0, 0, 1920, 1920, 'MainMenu').setOrigin(0);
-        var Selector = this.matter.add.image(280, 400, 'Selector', null, {})
+        Selector = this.matter.add.image(280, 400, 'Selector', null, {})
+        selected_item = "Jugar"
         document.getElementById("score").innerHTML = ''
         document.getElementById("myProgress").style.visibility = "hidden";
 
-        // this.add.text(290, 180, 'SPACE RUNNING!', { fontSize: '32px', fill: '#fff' });
-        // this.add.text(200, 300, 'Presiona espacio para empezar', { fontSize: '32px', fill: '#fff' });
         cursors = this.input.keyboard.createCursorKeys();
-        this.key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
     },
 
     update: function(time, delta){
-        if(this.key.isDown){
-                game.resize(window.innerWidth, window.innerHeight);  
+        if(this.f.isDown){
+            game.resize(window.innerWidth, window.innerHeight);
         }
-        if(cursors.space.isDown){
-            document.getElementById("myProgress").style.visibility = "visible";
-            this.scene.start('scene1');
+        if(cursors.up.isDown && canShot){
+            canShot = false;
+
+            if(selected_item=="ComoJugar"){
+                selected_item = "Logros"
+                Selector.y = 470;
+            }
+            else if(selected_item=="Logros"){
+                selected_item = "Jugar"
+                Selector.y = 400;
+            }
+
+            setTimeout(function(){
+                canShot = true;
+            }, 200);
+        }
+        else if(cursors.down.isDown && canShot){
+            canShot = false;
+
+            if(selected_item=="Jugar"){
+                selected_item = "Logros"
+                Selector.y = 470;
+            }
+            else if(selected_item=="Logros"){
+                selected_item = "ComoJugar"
+                Selector.y = 543;
+            }
+
+            setTimeout(function(){
+                canShot = true;
+            }, 200);
+        }
+        else if(cursors.space.isDown && canShot){
+            canShot = false;
+
+            var items = {"Jugar":startGame, "Logros":seeAchievements, "ComoJugar":howToPlay}
+            items[selected_item](this); //se llama
+
+            setTimeout(function(){
+                canShot = true;
+            }, 200);
         }
     } 
 });
+
+function startGame(dis){
+    document.getElementById("myProgress").style.visibility = "visible";
+    dis.scene.start('scene1');
+}
+
+function seeAchievements(dis){
+    dis.scene.start('seeAchievementsScene');
+}
+
+function howToPlay(dis){
+    dis.scene.start('howToPlayScene');
+}
+
+var howToPlayScene = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function howToPlayScene ()
+    {
+        Phaser.Scene.call(this, { key: 'howToPlayScene' });
+    },
+
+    preload: function () {
+        this.load.image('HowToPlay','img/HowToPlay.png');
+    },
+
+    create: function () {
+        this.add.tileSprite(0, 0, 800, 600, 'HowToPlay').setOrigin(0);
+
+        this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        this.esc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    },
+
+    update: function(time, delta){
+        if(this.f.isDown){
+            game.resize(window.innerWidth, window.innerHeight);
+        }
+        if(this.esc.isDown){
+            this.scene.start('menuScene');
+        }
+    }
+});
+
+var seeAchievementsScene = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function seeAchievementsScene ()
+    {
+        Phaser.Scene.call(this, { key: 'seeAchievementsScene' });
+    },
+
+    preload: function () {
+        this.load.image('Achievements','img/Achievements.png');
+    },
+
+    create: function () {
+        this.add.tileSprite(0, 0, 800, 600, 'Achievements').setOrigin(0);
+
+        achievements = getAchievements()
+        this.add.text(235, 100, achievements.mejor_puntaje, { fontSize: '24px', fill: '#fff' });
+        this.add.text(235, 130, achievements.muertes, { fontSize: '24px', fill: '#fff' });
+        this.add.text(235, 160, achievements.ascesinatos, { fontSize: '24px', fill: '#fff' });
+        // this.add.text(235, 190, achievements.tiempo_jugado, { fontSize: '24px', fill: '#fff' });
+        this.add.text(235, 190, Math.abs(Math.floor(achievements.tiempo_jugado/60))+' min '+Math.abs(Math.floor((achievements.tiempo_jugado/60%1)*60))+' seg', { fontSize: '24px', fill: '#fff' });
+
+
+        this.add.text(680, 82, achievements.morir_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 112, achievements.morir_25_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 142, achievements.morir_50_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 172, achievements.matar_25_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 202, achievements.matar_50_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 232, achievements.matar_100_enemigos.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 265, achievements.pasar_etapa_1_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 290, achievements.pasar_etapa_1_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 317, achievements.pasar_etapa_1_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 346, achievements.pasar_etapa_2_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 372, achievements.pasar_etapa_2_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 398, achievements.pasar_etapa_2_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 427, achievements.pasar_etapa_3_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 453, achievements.pasar_etapa_3_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 481, achievements.pasar_etapa_3_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 507, achievements.pasar_etapa_4_muriendo_maximo_10_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 535, achievements.pasar_etapa_4_muriendo_maximo_5_veces.toString(), { fontSize: '22px', fill: '#fff' });
+        this.add.text(680, 563, achievements.pasar_etapa_4_muriendo_maximo_2_veces.toString(), { fontSize: '22px', fill: '#fff' });
+
+        this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        this.esc = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    },
+
+    update: function(time, delta){
+        if(this.f.isDown){
+            game.resize(window.innerWidth, window.innerHeight);
+        }
+        if(this.esc.isDown){
+            this.scene.start('menuScene');
+        }
+    }
+});
+
 
 var config = {
     type: Phaser.WEBGL,
     width: 800,
     height: 600,
-    scene: [menuScene,Scene1,Scene2,Scene3,Scene4 ,endScene],
+    scene: [menuScene, Scene1, Scene2, Scene3, Scene4, endScene, howToPlayScene, seeAchievementsScene],
     physics: {
         default: 'matter',
         matter: {
@@ -361,9 +487,7 @@ var config = {
 
 var game = new Phaser.Game(config);
 
-function resize (width, height)
-{
-    
+function resize(width, height){
     if(game.config.width == window.innerWidth){
         game.config.width = 800;
     }else{
@@ -377,8 +501,9 @@ function resize (width, height)
        game.config.height = window.innerHeight;
        this.cameras.resize(width, height); 
     }
-
 }
+
+
 
 function etapa1(dis, includingMap=true){
     if (includingMap){

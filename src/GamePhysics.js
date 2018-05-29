@@ -19,7 +19,8 @@ function createPlayer(dis){
 function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
-    // deaths += 1;
+    deaths += 1;
+    stage_deaths += 1;
     updateAchievements("deaths")
 
     if (num_enemies>0 && this_life_score>=30){
@@ -174,6 +175,69 @@ function nextStage(dis, nextScene){
     dis.matter.pause();
     isPaused = true;
     timeProgress = 0;
+
+    //si se pasó la etapa 1
+    if (nextScene=="scene2"){
+        if(stage_deaths<=2){
+            updateAchievements("stage1_2", true)
+            updateAchievements("stage1_5", true)
+            updateAchievements("stage1_10", true)
+        }
+        else if(stage_deaths<=5){
+            updateAchievements("stage1_5", true)
+            updateAchievements("stage1_10", true)
+        }
+        else if(stage_deaths<=10){
+            updateAchievements("stage1_10", true)
+        }
+    }
+    //si se pasó la etapa 2
+    else if (nextScene=="scene3"){
+        if(stage_deaths<=2){
+            updateAchievements("stage2_2", true)
+            updateAchievements("stage2_5", true)
+            updateAchievements("stage2_10", true)
+        }
+        else if(stage_deaths<=5){
+            updateAchievements("stage2_5", true)
+            updateAchievements("stage2_10", true)
+        }
+        else if(stage_deaths<=10){
+            updateAchievements("stage2_10", true)
+        }
+    }
+    //si se pasó la etapa 3
+    else if (nextScene=="scene4"){
+        if(stage_deaths<=2){
+            updateAchievements("stage3_2", true)
+            updateAchievements("stage3_5", true)
+            updateAchievements("stage3_10", true)
+        }
+        else if(stage_deaths<=5){
+            updateAchievements("stage3_5", true)
+            updateAchievements("stage3_10", true)
+        }
+        else if(stage_deaths<=10){
+            updateAchievements("stage3_10", true)
+        }
+    }
+    //si se pasó la etapa 4
+    else if (nextScene=="endScene"){
+        if(stage_deaths<=2){
+            updateAchievements("stage4_2", true)
+            updateAchievements("stage4_5", true)
+            updateAchievements("stage4_10", true)
+        }
+        else if(stage_deaths<=5){
+            updateAchievements("stage4_5", true)
+            updateAchievements("stage4_10", true)
+        }
+        else if(stage_deaths<=10){
+            updateAchievements("stage4_10", true)
+        }
+    }
+
+    stage_deaths = 0;
     nextStageBarTime = true;
 
     dis.cameras.main.fade(750, 0, 0, 0);
@@ -184,8 +248,8 @@ function nextStage(dis, nextScene){
         document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Cargando...'
         dis.scene.start(nextScene);
     }, 1010);
-
 }
+
 
 function pause(dis){
     if (isPaused){
@@ -197,7 +261,6 @@ function pause(dis){
         isPaused = true;
     }
 }
-
 
 
 function changeScore(changed) {
@@ -226,10 +289,12 @@ function startTimeBar(maxTime) {
             }
 
             if (isPaused){
-                updateAchievements('total_time', total_time);
+                updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                unsaved_time = 0;
             }
             else{
                 total_time++;
+                unsaved_time++;
             }
         } else {
             if (!isPaused){
@@ -238,9 +303,11 @@ function startTimeBar(maxTime) {
                 elem.style.width = timeProgress*100/maxTime + '%';
                 elem.innerHTML = timeProgress  + 'seg';
                 total_time++;
+                unsaved_time++;
             }
             else if (isPaused){
-                updateAchievements('total_time', total_time);
+                updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                unsaved_time = 0;
                 elem.innerHTML = timeProgress  + 'seg (Pausado)';
             }
         }
@@ -442,18 +509,19 @@ function createScene(dis, this_stage, nextScene){
     });
 
     cursors = dis.input.keyboard.createCursorKeys();
+    dis.f = dis.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+    dis.p = dis.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
 }
 
 function updateScene(dis){
-    if (cursors.up.isDown) {
-        increaseVelTo(player, max_speed)
+    if (cursors.up.isDown && !isPaused) {
+        increaseVelTo(player, max_speed, 0.2)
         player.setTexture('player_turbo')
         player.setBounce(0.3);
     }
-    else if (cursors.down.isDown) {
+    else if (cursors.down.isDown && !isPaused) {
         reduceVelTo(player, slow_speed)
         player.setTexture('player_shutdown')
-
     }
     else {
         player.setTexture('player')
@@ -492,15 +560,19 @@ function updateScene(dis){
         }, 150);
     }
 
-    if(cursors.shift.isDown){
+    if(dis.p.isDown){
         if (canPause) {
             canPause=false;
             pause(dis)
-
+ 
             setTimeout(function(){
                 canPause = true;
             }, 2000);
         }
+    }
+
+    if(dis.f.isDown){
+        game.resize(window.innerWidth, window.innerHeight);
     }
     
 
@@ -511,41 +583,60 @@ function updateScene(dis){
     // }, dis);
 }
 
-<<<<<<< HEAD
-=======
-
 function getAchievements(){
     analitics = JSON.parse(localStorage.getItem('analitics'));
+    if (!analitics){
+        analitics = {
+            'best_score':0,
+            'deaths':0,
+            'kills':0,
+            'total_time':0,
+            'stage1_10':false,
+            'stage1_5':false,
+            'stage1_2':false,
+            'stage2_10':false,
+            'stage2_5':false,
+            'stage2_2':false,
+            'stage3_10':false,
+            'stage3_5':false,
+            'stage3_2':false,
+            'stage4_10':false,
+            'stage4_5':false,
+            'stage4_2':false
+        }
+        localStorage.setItem('analitics',  JSON.stringify(analitics));
+    }
     return {
+        'mejor_puntaje': analitics.best_score,
         'muertes': analitics.deaths,
         'ascesinatos': analitics.kills,
-        'tiempo jugado': analitics.total_time,
-        'morir 10 veces': (analitics.deaths>=10),
-        'morir 25 veces': (analitics.deaths>=25),
-        'morir 50 veces': (analitics.deaths>=50),
-        'matar 25 enemigos': (analitics.kills>=25),
-        'matar 50 enemigos': (analitics.kills>=50),
-        'matar 100 enemigos': (analitics.kills>=100),
-        'pasar etapa 1 muriendo maximo 10 veces': false,
-        'pasar etapa 1 muriendo maximo 5 veces': false,
-        'pasar etapa 1 muriendo maximo 2 veces': false,
-        'pasar etapa 2 muriendo maximo 10 veces': false,
-        'pasar etapa 2 muriendo maximo 5 veces': false,
-        'pasar etapa 2 muriendo maximo 2 veces': false,
-        'pasar etapa 3 muriendo maximo 10 veces': false,
-        'pasar etapa 3 muriendo maximo 5 veces': false,
-        'pasar etapa 3 muriendo maximo 2 veces': false,
-        'pasar etapa 4 muriendo maximo 10 veces': false,
-        'pasar etapa 4 muriendo maximo 5 veces': false,
-        'pasar etapa 4 muriendo maximo 2 veces': false,
+        'tiempo_jugado': analitics.total_time,
+        'morir_10_veces': (analitics.deaths>=10),
+        'morir_25_veces': (analitics.deaths>=25),
+        'morir_50_veces': (analitics.deaths>=50),
+        'matar_25_enemigos': (analitics.kills>=25),
+        'matar_50_enemigos': (analitics.kills>=50),
+        'matar_100_enemigos': (analitics.kills>=100),
+        'pasar_etapa_1_muriendo_maximo_10_veces': analitics.stage1_10,
+        'pasar_etapa_1_muriendo_maximo_5_veces': analitics.stage1_5,
+        'pasar_etapa_1_muriendo_maximo_2_veces': analitics.stage1_2,
+        'pasar_etapa_2_muriendo_maximo_10_veces': analitics.stage2_10,
+        'pasar_etapa_2_muriendo_maximo_5_veces': analitics.stage2_5,
+        'pasar_etapa_2_muriendo_maximo_2_veces': analitics.stage2_2,
+        'pasar_etapa_3_muriendo_maximo_10_veces': analitics.stage3_10,
+        'pasar_etapa_3_muriendo_maximo_5_veces': analitics.stage3_5,
+        'pasar_etapa_3_muriendo_maximo_2_veces': analitics.stage3_2,
+        'pasar_etapa_4_muriendo_maximo_10_veces': analitics.stage4_10,
+        'pasar_etapa_4_muriendo_maximo_5_veces': analitics.stage4_5,
+        'pasar_etapa_4_muriendo_maximo_2_veces': analitics.stage4_2
     }
 }
-
 
 function updateAchievements(elem, value=-1){
     analitics = JSON.parse(localStorage.getItem('analitics'));
     if (!analitics){
         analitics = {
+            'best_score':0,
             'deaths':0,
             'kills':0,
             'total_time':0,
@@ -574,4 +665,3 @@ function updateAchievements(elem, value=-1){
 
     localStorage.setItem('analitics',  JSON.stringify(analitics));
 }
->>>>>>> fc56d806f58582d7bdb3d87a09ee1c079b9c0942

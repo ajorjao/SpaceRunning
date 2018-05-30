@@ -19,7 +19,10 @@ function createPlayer(dis){
 function playerDestroy(dis, player, stage_obstacles, this_stage){
     dis.matter.pause();
     isPaused = true;
-    deaths += 1;
+    stage_deaths += 1;
+    updateAchievements("deaths");
+    updateAchievements("last_game_deaths");
+
     if (num_enemies>0 && this_life_score>=30){
         num_enemies-=1;
     }
@@ -78,6 +81,7 @@ function obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles){
     
     obstacle.gameObject.destroy();
     changeScore(+25)
+    updateAchievements("kills")
     for (var i = 0; i < stage_obstacles.length; i++) {
         if (stage_obstacles[i].active == false){
             stage_obstacles.splice(i, 1);
@@ -93,11 +97,11 @@ function obstacleDestroy(dis, obstacle, spawn_points, stage_obstacles){
         explosion.destroy();
         var isInvalid;
         var pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
-        var distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+        var distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y);
 
         while (distance<500){
             pos = spawn_points[Phaser.Math.Between(0, spawn_points.length-1)];
-            distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y)
+            distance = Phaser.Math.Distance.Between(pos[0], pos[1], player.body.position.x, player.body.position.y);
         }
 
         stage_obstacles.push(createAlien(dis, pos, obstacles, collisionTokens["obstacles"]));
@@ -171,16 +175,85 @@ function nextStage(dis, nextScene){
     dis.matter.pause();
     isPaused = true;
     timeProgress = 0;
+    updateAchievements('current_stage',nextScene);
+
+    //MANEJO DE ACHIEVEMENTS
+    //si se pasó la etapa 1
+    if (nextScene=="scene2"){
+        if(stage_deaths<=2){
+            updateAchievements("stage1_oro", true)
+            updateAchievements("stage1_plata", true)
+            updateAchievements("stage1_bronce", true)
+        }
+        else if(stage_deaths<=4){
+            updateAchievements("stage1_plata", true)
+            updateAchievements("stage1_bronce", true)
+        }
+        else if(stage_deaths<=6){
+            updateAchievements("stage1_bronce", true)
+        }
+    }
+    //si se pasó la etapa 2
+    else if (nextScene=="scene3"){
+        if(stage_deaths<=4){
+            updateAchievements("stage2_oro", true)
+            updateAchievements("stage2_plata", true)
+            updateAchievements("stage2_bronce", true)
+        }
+        else if(stage_deaths<=8){
+            updateAchievements("stage2_plata", true)
+            updateAchievements("stage2_bronce", true)
+        }
+        else if(stage_deaths<=12){
+            updateAchievements("stage2_bronce", true)
+        }
+    }
+    //si se pasó la etapa 3
+    else if (nextScene=="scene4"){
+        if(stage_deaths<=6){
+            updateAchievements("stage3_oro", true)
+            updateAchievements("stage3_plata", true)
+            updateAchievements("stage3_bronce", true)
+        }
+        else if(stage_deaths<=12){
+            updateAchievements("stage3_plata", true)
+            updateAchievements("stage3_bronce", true)
+        }
+        else if(stage_deaths<=18){
+            updateAchievements("stage3_bronce", true)
+        }
+    }
+    //si se pasó la etapa 4
+    else if (nextScene=="endScene"){
+        if(stage_deaths<=8){
+            updateAchievements("stage4_oro", true)
+            updateAchievements("stage4_plata", true)
+            updateAchievements("stage4_bronce", true)
+        }
+        else if(stage_deaths<=16){
+            updateAchievements("stage4_plata", true)
+            updateAchievements("stage4_bronce", true)
+        }
+        else if(stage_deaths<=24){
+            updateAchievements("stage4_bronce", true)
+        }
+    }
+
+    stage_deaths = 0;
+    last_stage_score = score;
+    updateAchievements('last_stage_score',score)
+    nextStageBarTime = true;
 
     dis.cameras.main.fade(750, 0, 0, 0);
     dis.cameras.cameras[1].fade(750, 0, 0, 0);
 
     setTimeout(function() {
+        nextStageBarTime = false;
         document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Cargando...'
         dis.scene.start(nextScene);
     }, 1010);
-
 }
+
 
 function pause(dis){
     if (isPaused){
@@ -194,11 +267,15 @@ function pause(dis){
 }
 
 
-
-function changeScore(changed) {
-    score += changed;
-    if (changed>0){
-        this_life_score += changed;
+function changeScore(changed, isAdding=true) {
+    if (isAdding){
+        score += changed;
+        if (changed>0){
+            this_life_score += changed;
+        }
+    }
+    else{
+        score = changed;
     }
     document.getElementById("score").innerHTML = 'Score: '+ score
 }
@@ -212,17 +289,36 @@ function startTimeBar(maxTime) {
     var id = setInterval(frame, 1000);
     function frame() {
         if (timeProgress <= 0) {
-            clearInterval(id);
-            elem.innerHTML = '';
-            document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Tiempo acabado'
+            if (nextStageBarTime){
+                clearInterval(id);
+            }
+            if (timeProgress==0){
+                elem.innerHTML = '';
+                document.getElementById("myProgress").innerHTML = '<div id="myBar"></div> Tiempo acabado';
+            }
+
+            if (isPaused){
+                updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                updateAchievements('last_game_time', total_time);
+                unsaved_time = 0;
+            }
+            else{
+                total_time++;
+                unsaved_time++;
+            }
         } else {
             if (!isPaused){
                 timeProgress--;
-                changeScore(-20)
+                changeScore(-20);
                 elem.style.width = timeProgress*100/maxTime + '%';
                 elem.innerHTML = timeProgress  + 'seg';
+                total_time++;
+                unsaved_time++;
             }
             else if (isPaused){
+                updateAchievements('total_time', getAchievements().tiempo_jugado+unsaved_time);
+                updateAchievements('last_game_time', total_time);
+                unsaved_time = 0;
                 elem.innerHTML = timeProgress  + 'seg (Pausado)';
             }
         }
@@ -424,18 +520,19 @@ function createScene(dis, this_stage, nextScene){
     });
 
     cursors = dis.input.keyboard.createCursorKeys();
+    dis.f = dis.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+    dis.p = dis.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
 }
 
 function updateScene(dis){
-    if (cursors.up.isDown) {
-        increaseVelTo(player, max_speed)
+    if (cursors.up.isDown && !isPaused) {
+        increaseVelTo(player, max_speed, 0.2)
         player.setTexture('player_turbo')
         player.setBounce(0.3);
     }
-    else if (cursors.down.isDown) {
+    else if (cursors.down.isDown && !isPaused) {
         reduceVelTo(player, slow_speed)
         player.setTexture('player_shutdown')
-
     }
     else {
         player.setTexture('player')
@@ -474,15 +571,21 @@ function updateScene(dis){
         }, 150);
     }
 
-    if(cursors.shift.isDown){
+    if(dis.p.isDown){
         if (canPause) {
             canPause=false;
             pause(dis)
-
+ 
             setTimeout(function(){
                 canPause = true;
             }, 2000);
         }
+    }
+
+    if(dis.f.isDown){
+        pause(dis)
+        game.resize(window.innerWidth, window.innerHeight);
+        dis.scene.start(dis.scene.key);
     }
     
 
@@ -491,4 +594,98 @@ function updateScene(dis){
     //     dis.matter.world.drawDebug = !dis.matter.world.drawDebug;
     //     dis.matter.world.debugGraphic.visible = dis.matter.world.drawDebug;
     // }, dis);
+}
+
+function getAchievements(){
+    analitics = JSON.parse(localStorage.getItem('analitics'));
+    if (!analitics){
+        analitics = {
+            'best_score':0,
+            'deaths':0,
+            'kills':0,
+            'total_time':0,
+            'stage1_bronce':false,
+            'stage1_plata':false,
+            'stage1_oro':false,
+            'stage2_bronce':false,
+            'stage2_plata':false,
+            'stage2_oro':false,
+            'stage3_bronce':false,
+            'stage3_plata':false,
+            'stage3_oro':false,
+            'stage4_bronce':false,
+            'stage4_plata':false,
+            'stage4_oro':false,
+            'current_stage':'scene1',
+            'last_stage_score':0,
+            'last_game_deaths':0,
+            'last_game_time':0
+        }
+        localStorage.setItem('analitics',  JSON.stringify(analitics));
+    }
+    return {
+        'mejor_puntaje': analitics.best_score,
+        'muertes': analitics.deaths,
+        'ascesinatos': analitics.kills,
+        'tiempo_jugado': analitics.total_time,
+        'morir_20_veces': (analitics.deaths>=20),
+        'morir_50_veces': (analitics.deaths>=50),
+        'morir_100_veces': (analitics.deaths>=100),
+        'matar_50_enemigos': (analitics.kills>=50),
+        'matar_100_enemigos': (analitics.kills>=100),
+        'matar_200_enemigos': (analitics.kills>=200),
+        'pasar_etapa_1_bronce': analitics.stage1_bronce,
+        'pasar_etapa_1_plata': analitics.stage1_plata,
+        'pasar_etapa_1_oro': analitics.stage1_oro,
+        'pasar_etapa_2_bronce': analitics.stage2_bronce,
+        'pasar_etapa_2_plata': analitics.stage2_plata,
+        'pasar_etapa_2_oro': analitics.stage2_oro,
+        'pasar_etapa_3_bronce': analitics.stage3_bronce,
+        'pasar_etapa_3_plata': analitics.stage3_plata,
+        'pasar_etapa_3_oro': analitics.stage3_oro,
+        'pasar_etapa_4_bronce': analitics.stage4_bronce,
+        'pasar_etapa_4_plata': analitics.stage4_plata,
+        'pasar_etapa_4_oro': analitics.stage4_oro,
+        'current_stage': analitics.current_stage,
+        'last_stage_score':analitics.last_stage_score,
+        'last_game_deaths':analitics.last_game_deaths,
+        'last_game_time':analitics.last_game_time
+    }
+}
+
+function updateAchievements(elem, value=-1){
+    analitics = JSON.parse(localStorage.getItem('analitics'));
+    if (!analitics){
+        analitics = {
+            'best_score':0,
+            'deaths':0,
+            'kills':0,
+            'total_time':0,
+            'stage1_bronce':false,
+            'stage1_plata':false,
+            'stage1_oro':false,
+            'stage2_bronce':false,
+            'stage2_plata':false,
+            'stage2_oro':false,
+            'stage3_bronce':false,
+            'stage3_plata':false,
+            'stage3_oro':false,
+            'stage4_bronce':false,
+            'stage4_plata':false,
+            'stage4_oro':false,
+            'current_stage':'scene1',
+            'last_stage_score':0,
+            'last_game_deaths':0,
+            'last_game_time':0
+        }
+    }
+
+    if (value!=-1){
+        analitics[elem] = value;
+    }
+    else {
+        analitics[elem] += 1;
+    }
+
+    localStorage.setItem('analitics',  JSON.stringify(analitics));
 }

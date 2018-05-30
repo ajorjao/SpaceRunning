@@ -1,5 +1,6 @@
 function createPlayer(dis){
-    var playerBody = dis.matter.world.fromPath('58 16 58 21 0 39 0 0');
+    // var playerBody = dis.matter.world.fromPath('58 16 58 21 0 39 0 0');
+    var playerBody = dis.matter.world.fromPath('62 17 62 20 15 34 6 18 15 4');
     player = dis.matter.add.image(player_spawn[0], player_spawn[1], 'player', null, {
         shape: {
             type: 'fromVerts',
@@ -53,6 +54,7 @@ function playerDestroy(dis, player, stage_obstacles, this_stage){
         }, 2000);
     }, 1000);
 }
+
 
 function createAlien(dis, pos){
     var alienBody = dis.matter.world.fromPath('60 0 220 90 60 157 -120 90');

@@ -332,8 +332,6 @@ var menuScene = new Phaser.Class({
     preload: function () {
         this.load.image('MainMenu','img/MainMenu.png');
         this.load.image('Selector','img/MenuSelector.png');
-
-        // this.load.audio('theme', 'audio/VivaldisWinter.mp3');
     },
 
     create: function () {
@@ -343,12 +341,18 @@ var menuScene = new Phaser.Class({
 
         cursors = this.input.keyboard.createCursorKeys();
         this.f = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        this.q = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+        this.w = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.e = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+        this.r = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     },
 
     update: function(time, delta){
+        // full screen
         if(this.f.isDown){
             game.resize(window.innerWidth, window.innerHeight);
         }
+        // movimiento de seleccion
         if(cursors.up.isDown && canShot){
             canShot = false;
 
@@ -381,6 +385,7 @@ var menuScene = new Phaser.Class({
                 canShot = true;
             }, 200);
         }
+        // seleccionar
         else if(cursors.space.isDown && canShot){
             canShot = false;
 
@@ -389,7 +394,43 @@ var menuScene = new Phaser.Class({
 
             setTimeout(function(){
                 canShot = true;
-            }, 200);
+            }, 100);
+        }
+        // ir a etapa 1
+        else if(this.q.isDown && canShot){
+            canShot = false;
+            updateAchievements("current_stage", 'scene1');
+            console.log("chaeat OK, proxima etapa: 1")
+            setTimeout(function(){
+                canShot = true;
+            }, 100);
+        }
+        // ir a etapa 2
+        else if(this.w.isDown && canShot){
+            canShot = false;
+            updateAchievements("current_stage", 'scene2');
+            console.log("chaeat OK, proxima etapa: 2")
+            setTimeout(function(){
+                canShot = true;
+            }, 100);
+        }
+        // ir a etapa 3
+        else if(this.e.isDown && canShot){
+            canShot = false;
+            updateAchievements("current_stage", 'scene3');
+            console.log("chaeat OK, proxima etapa: 3")
+            setTimeout(function(){
+                canShot = true;
+            }, 100);
+        }
+        // ir a etapa 4
+        else if(this.r.isDown && canShot){
+            canShot = false;
+            updateAchievements("current_stage", 'scene4');
+            console.log("chaeat OK, proxima etapa: 4")
+            setTimeout(function(){
+                canShot = true;
+            }, 100);
         }
     } 
 });
